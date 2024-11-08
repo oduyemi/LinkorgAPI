@@ -48,11 +48,7 @@ const adminSchema = new mongoose_1.default.Schema({
             message: "Password must be at least 8 characters long and contain at least one capital letter, one small letter, one digit, and one special character.",
         },
     },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-});
+}, { timestamps: true });
 adminSchema.pre("save", function (next) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!this.isModified("password"))

@@ -3,6 +3,8 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import cors from "cors";
 import session from "express-session";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { db, store } from "./config/index"; 
 import AppError from "./utils/appError";
 import appRoutes from "./routes/app.route";
@@ -39,11 +41,20 @@ app.use(session({
 }));
 
 
+
+
+app.use(helmet());
+app.use(rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10, // limit to 10 requests per IP
+}));
+
+
 // Routes
 app.use("/api/v1", appRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/contacts", contactRoutes);
-app.use("/api/v1/enquries", enquiryRoutes); 
+app.use("/api/v1/enquiries", enquiryRoutes); 
 
 
 

@@ -8,6 +8,8 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
 const express_session_1 = __importDefault(require("express-session"));
+const helmet_1 = __importDefault(require("helmet"));
+const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const index_1 = require("./config/index");
 const appError_1 = __importDefault(require("./utils/appError"));
 const app_route_1 = __importDefault(require("./routes/app.route"));
@@ -35,11 +37,16 @@ app.use((0, express_session_1.default)({
         maxAge: 1000 * 60 * 60 // 1 hour
     }
 }));
+app.use((0, helmet_1.default)());
+app.use((0, express_rate_limit_1.default)({
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 10, // limit to 10 requests per IP
+}));
 // Routes
 app.use("/api/v1", app_route_1.default);
 app.use("/api/v1/bookings", booking_route_1.default);
 app.use("/api/v1/contacts", contact_route_1.default);
-app.use("/api/v1/enquries", enquiry_route_1.default);
+app.use("/api/v1/enquiries", enquiry_route_1.default);
 app.all("*", (req, res, next) => {
     next(new appError_1.default(`The route ${req.originalUrl} with the ${req.method} method does not exist on this server! 💨`, 404));
 });
