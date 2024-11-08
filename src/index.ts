@@ -8,7 +8,6 @@ import AppError from "./utils/appError";
 // import appRoutes from "./routes/app.route";
 // import userRoutes from "./routes/user.route";
 // import productRoutes from "./routes/product.route";
-import "./config/media.config";
 
 
 dotenv.config();
