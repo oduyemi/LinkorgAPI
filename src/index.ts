@@ -63,7 +63,7 @@ app.use((err: AppError, req: express.Request, res: express.Response, next: expre
 db.once("open", () => {
   console.log("Connected to MongoDB");
 
-  const PORT: number | string = process.env.PORT || 3000;
+  const PORT: number | string = process.env.PORT || 4000;
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
