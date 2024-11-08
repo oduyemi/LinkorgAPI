@@ -17,25 +17,28 @@ interface AdminSession {
 
 declare module "express-session" {
     interface SessionData {
-      admin?: AdminSession; 
+        admin?: AdminSession;
     }
 }
 
-export const authenticateAdmin = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    if (!req.session.admin) {
-      return res.status(401).json({ message: "Unauthorized. No admin session found." });
-    }
+export const authenticateAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        if (!req.session.admin) {
+            res.status(401).json({ message: "Unauthorized. No admin session found." });
+            return; // Ensure no further processing after sending a response.
+        }
 
-    const { adminID } = req.session.admin;
-    const admin = await Admin.findById(adminID);
-    if (!admin) {
-      return res.status(404).json({ message: "Admin not found." });
-    }
+        const { adminID } = req.session.admin;
+        const admin = await Admin.findById(adminID);
+        if (!admin) {
+            res.status(404).json({ message: "Admin not found." });
+            return; // Stop further processing.
+        }
 
-    next();
-  } catch (error) {
-    console.error("Error during authentication:", error);
-    return res.status(401).json({ message: "Unauthorized. Invalid session or token." });
-  }
+        next(); // Call next if authentication is successful.
+    } catch (error) {
+        console.error("Error during authentication:", error);
+        res.status(401).json({ message: "Unauthorized. Invalid session or token." });
+        return; // Stop further processing.
+    }
 };

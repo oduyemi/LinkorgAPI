@@ -13,6 +13,7 @@ const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const index_1 = require("./config/index");
 const appError_1 = __importDefault(require("./utils/appError"));
 const app_route_1 = __importDefault(require("./routes/app.route"));
+const admin_route_1 = __importDefault(require("./routes/admin.route"));
 const booking_route_1 = __importDefault(require("./routes/booking.route"));
 const contact_route_1 = __importDefault(require("./routes/contact.route"));
 const enquiry_route_1 = __importDefault(require("./routes/enquiry.route"));
@@ -44,6 +45,7 @@ app.use((0, express_rate_limit_1.default)({
 }));
 // Routes
 app.use("/api/v1", app_route_1.default);
+app.use("/api/v1/admin", admin_route_1.default);
 app.use("/api/v1/bookings", booking_route_1.default);
 app.use("/api/v1/contacts", contact_route_1.default);
 app.use("/api/v1/enquiries", enquiry_route_1.default);

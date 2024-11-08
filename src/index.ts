@@ -8,6 +8,7 @@ import rateLimit from "express-rate-limit";
 import { db, store } from "./config/index"; 
 import AppError from "./utils/appError";
 import appRoutes from "./routes/app.route";
+import adminRoutes from "./routes/admin.route";
 import bookingRoutes from "./routes/booking.route";
 import contactRoutes from "./routes/contact.route";
 import enquiryRoutes from "./routes/enquiry.route";
@@ -52,6 +53,7 @@ app.use(rateLimit({
 
 // Routes
 app.use("/api/v1", appRoutes);
+app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/contacts", contactRoutes);
 app.use("/api/v1/enquiries", enquiryRoutes); 

@@ -1,11 +1,12 @@
-import express, { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { hash, compare } from "bcrypt";
 import mongoose from "mongoose";
+import dotenv from "dotenv"
 import Admin, { IAdmin } from "../models/admin.model";
 
-require("dotenv").config();
+dotenv.config()
 
 interface AdminSession {
     adminID: mongoose.Types.ObjectId;
@@ -50,21 +51,24 @@ export const getAdminById = async (req: Request, res: Response): Promise<void> =
 };
 
 
-export const registerAdmin = async (req: Request, res: Response): Promise<Response> => {
+export const registerAdmin = async (req: Request, res: Response): Promise<void> => {
     try {
         const { fname, lname, email, phone, password, confirmPassword } = req.body;
-        
+
         if (![fname, lname, email, phone, password, confirmPassword].every((field) => field)) {
-            return res.status(400).json({ message: "All fields are required" });
+            res.status(400).json({ message: "All fields are required" });
+            return;
         }
 
         if (password !== confirmPassword) {
-            return res.status(400).json({ message: "Both passwords must match!" });
+            res.status(400).json({ message: "Both passwords must match!" });
+            return;
         }
 
         const existingAdmin = await Admin.findOne({ email });
         if (existingAdmin) {
-            return res.status(400).json({ message: "Email is already registered" });
+            res.status(400).json({ message: "Email is already registered" });
+            return;
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -72,10 +76,7 @@ export const registerAdmin = async (req: Request, res: Response): Promise<Respon
         await newAdmin.save();
 
         const token = jwt.sign(
-            { 
-                adminID: newAdmin._id, 
-                email: newAdmin.email 
-            },
+            { adminID: newAdmin._id, email: newAdmin.email },
             process.env.JWT_SECRET!,
             { expiresIn: '1h' }
         );
@@ -92,7 +93,7 @@ export const registerAdmin = async (req: Request, res: Response): Promise<Respon
 
         req.session.admin = adminSession;
 
-        return res.status(201).json({
+        res.status(201).json({
             message: "Admin registered successfully.",
             token,
             admin: {
@@ -101,35 +102,35 @@ export const registerAdmin = async (req: Request, res: Response): Promise<Respon
                 email: newAdmin.email,
                 phone: newAdmin.phone,
             },
-            nextStep: "/next-login-page", 
+            nextStep: "/next-login-page",
         });
     } catch (error) {
         console.error("Error during admin registration:", error);
-        return res.status(500).json({ message: "Error registering admin" });
+        res.status(500).json({ message: "Error registering admin" });
     }
 };
 
 
-
-
-
-export const loginAdmin = async (req: Request, res: Response, next: NextFunction) => {
+export const loginAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required" });
+            res.status(400).json({ message: "Email and password are required" });
+            return; // Ensure further code execution stops here
         }
 
         const admin: IAdmin | null = await Admin.findOne({ email });
         
         if (!admin) {
-            return res.status(401).json({ message: "Email not registered. Please register first." });
+            res.status(401).json({ message: "Email not registered. Please register first." });
+            return; // Stop execution
         }
 
         const isMatch = await bcrypt.compare(password, admin.password);
   
         if (!isMatch) {
-            return res.status(400).json({ message: "Invalid credentials" });
+            res.status(400).json({ message: "Invalid credentials" });
+            return; // Stop execution
         }
   
         const payload = { adminId: admin._id };
@@ -147,7 +148,7 @@ export const loginAdmin = async (req: Request, res: Response, next: NextFunction
 
         req.session.admin = adminSession;
 
-        return res.status(200).json({
+        res.status(200).json({
             message: "success",
             adminID: admin._id,
             fname: admin.fname,
@@ -159,15 +160,21 @@ export const loginAdmin = async (req: Request, res: Response, next: NextFunction
         });
     } catch (error) {
         console.error("Error during admin login:", error);
-        return res.status(500).json({ message: "Error logging in admin" });
+        res.status(500).json({ message: "Error logging in admin" });
     }
 };
 
-export const updateAdmin = async (req: Request, res: Response) => {
+
+
+
+export const updateAdmin = async (req: Request, res: Response): Promise<void> => {
     try {
         const { adminId } = req.params;
+
+        // Validate admin ID
         if (!mongoose.Types.ObjectId.isValid(adminId)) {
-            return res.status(400).json({ message: "Invalid admin ID" });
+            res.status(400).json({ message: "Invalid admin ID" });
+            return;
         }
 
         const updatedAdminData: Partial<IAdmin> = req.body;
@@ -177,7 +184,8 @@ export const updateAdmin = async (req: Request, res: Response) => {
         );
 
         if (missingFields.length > 0) {
-            return res.status(400).json({ message: `Missing required fields: ${missingFields.join(", ")}` });
+            res.status(400).json({ message: `Missing required fields: ${missingFields.join(", ")}` });
+            return; 
         }
 
         if (updatedAdminData.password) {
@@ -187,7 +195,8 @@ export const updateAdmin = async (req: Request, res: Response) => {
         const updatedAdmin = await Admin.findByIdAndUpdate(adminId, updatedAdminData, { new: true });
 
         if (!updatedAdmin) {
-            return res.status(404).json({ message: "Admin not found" });
+            res.status(404).json({ message: "Admin not found" });
+            return;
         }
 
         res.status(200).json({ data: updatedAdmin, message: "Admin profile updated successfully" });
@@ -199,17 +208,20 @@ export const updateAdmin = async (req: Request, res: Response) => {
 
 
 
-export const deleteAdmin = async (req: Request, res: Response) => {
+
+export const deleteAdmin = async (req: Request, res: Response): Promise<void> => {
     try {
         const adminId = req.params.adminId;
         if (!req.session.admin || req.session.admin.adminID.toString() !== adminId) {
-            return res.status(401).json({ message: "Unauthorized: Admin not logged in or unauthorized to perform this action" });
+            res.status(401).json({ message: "Unauthorized: Admin not logged in or unauthorized to perform this action" });
+            return; 
         }
-
         const admin = await Admin.findById(adminId);
         if (!admin) {
-            return res.status(404).json({ message: "Admin not found" });
+            res.status(404).json({ message: "Admin not found" });
+            return; 
         }
+
         await Admin.findByIdAndDelete(adminId);
         req.session.destroy((err) => {
             if (err) {
@@ -224,31 +236,26 @@ export const deleteAdmin = async (req: Request, res: Response) => {
 };
 
 
-
-
-
-export const resetPassword = async (req: Request, res: Response) => {
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
     try {
         const adminId = req.params.adminId;
-
-        if (!req.session.admin || req.session.admin.adminID.toString() !== adminId) {
-            return res.status(401).json({ message: "Unauthorized: Admin not logged in or unauthorized to perform this action" });
-        }
-
         const { oldPassword, newPassword, confirmNewPassword } = req.body;
 
         const admin = await Admin.findById(adminId);
         if (!admin) {
-            return res.status(404).json({ message: "Admin not found" });
+            res.status(404).json({ message: "Admin not found" });
+            return; // Ensure the function stops execution after sending the response
         }
 
         if (newPassword !== confirmNewPassword) {
-            return res.status(400).json({ message: "Both passwords must match!" });
+            res.status(400).json({ message: "Both passwords must match!" });
+            return;
         }
 
         const isPasswordMatch = await bcrypt.compare(oldPassword, admin.password);
         if (!isPasswordMatch) {
-            return res.status(400).json({ message: "Incorrect old password" });
+            res.status(400).json({ message: "Incorrect old password" });
+            return;
         }
 
         admin.password = await bcrypt.hash(newPassword, 10);
@@ -262,11 +269,12 @@ export const resetPassword = async (req: Request, res: Response) => {
 
 
 export const logoutAdmin = (req: Request, res: Response) => {
+    const adminId = req.params.adminId;
     try {
-        if (!req.session.admin) {
-            return res.status(400).json({ message: "No admin logged in" });
+        if (!req.session.admin || req.session.admin.adminID.toString() !== adminId) {
+            res.status(401).json({ message: "Unauthorized: Admin not logged in or unauthorized to perform this action" });
+            return; 
         }
-
         req.session.destroy((err) => {
             if (err) {
                 console.error("Error destroying session:", err);

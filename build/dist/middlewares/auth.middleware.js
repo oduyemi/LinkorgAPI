@@ -19,18 +19,21 @@ dotenv_1.default.config();
 const authenticateAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.session.admin) {
-            return res.status(401).json({ message: "Unauthorized. No admin session found." });
+            res.status(401).json({ message: "Unauthorized. No admin session found." });
+            return; // Ensure no further processing after sending a response.
         }
         const { adminID } = req.session.admin;
         const admin = yield admin_model_1.default.findById(adminID);
         if (!admin) {
-            return res.status(404).json({ message: "Admin not found." });
+            res.status(404).json({ message: "Admin not found." });
+            return; // Stop further processing.
         }
-        next();
+        next(); // Call next if authentication is successful.
     }
     catch (error) {
         console.error("Error during authentication:", error);
-        return res.status(401).json({ message: "Unauthorized. Invalid session or token." });
+        res.status(401).json({ message: "Unauthorized. Invalid session or token." });
+        return; // Stop further processing.
     }
 });
 exports.authenticateAdmin = authenticateAdmin;
