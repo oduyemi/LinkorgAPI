@@ -4,7 +4,7 @@ import { validateRequestBody } from "../middlewares/validation.middleware";
 
 const router = express.Router();
 
-router.get("/enquiries", getAllEnquiries);
+router.get("/", getAllEnquiries);
 router.get("/enquiry/:id", getEnquiryById);
 router.post("/enquiry", validateRequestBody(["fname", "lname", "email", "company", "address", "phone", "state", "topic", "message"]), newEnquiry);
 

@@ -10,9 +10,10 @@ const cors_1 = __importDefault(require("cors"));
 const express_session_1 = __importDefault(require("express-session"));
 const index_1 = require("./config/index");
 const appError_1 = __importDefault(require("./utils/appError"));
-// import appRoutes from "./routes/app.route";
-// import userRoutes from "./routes/user.route";
-// import productRoutes from "./routes/product.route";
+const app_route_1 = __importDefault(require("./routes/app.route"));
+const booking_route_1 = __importDefault(require("./routes/booking.route"));
+const contact_route_1 = __importDefault(require("./routes/contact.route"));
+const enquiry_route_1 = __importDefault(require("./routes/enquiry.route"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const corsOptions = {
@@ -35,9 +36,10 @@ app.use((0, express_session_1.default)({
     }
 }));
 // Routes
-// app.use("/api/v1", appRoutes);
-// app.use("/api/v1/users", userRoutes);
-// app.use("/api/v1/products", productRoutes);
+app.use("/api/v1", app_route_1.default);
+app.use("/api/v1/bookings", booking_route_1.default);
+app.use("/api/v1/contacts", contact_route_1.default);
+app.use("/api/v1/enquries", enquiry_route_1.default);
 app.all("*", (req, res, next) => {
     next(new appError_1.default(`The route ${req.originalUrl} with the ${req.method} method does not exist on this server! 💨`, 404));
 });

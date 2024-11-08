@@ -5,9 +5,10 @@ import cors from "cors";
 import session from "express-session";
 import { db, store } from "./config/index"; 
 import AppError from "./utils/appError";
-// import appRoutes from "./routes/app.route";
-// import userRoutes from "./routes/user.route";
-// import productRoutes from "./routes/product.route";
+import appRoutes from "./routes/app.route";
+import bookingRoutes from "./routes/booking.route";
+import contactRoutes from "./routes/contact.route";
+import enquiryRoutes from "./routes/enquiry.route";
 
 
 dotenv.config();
@@ -39,9 +40,10 @@ app.use(session({
 
 
 // Routes
-// app.use("/api/v1", appRoutes);
-// app.use("/api/v1/users", userRoutes);
-// app.use("/api/v1/products", productRoutes);
+app.use("/api/v1", appRoutes);
+app.use("/api/v1/bookings", bookingRoutes);
+app.use("/api/v1/contacts", contactRoutes);
+app.use("/api/v1/enquries", enquiryRoutes); 
 
 
 
