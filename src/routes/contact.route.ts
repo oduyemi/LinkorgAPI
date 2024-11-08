@@ -5,7 +5,7 @@ import { validateRequestBody } from "../middlewares/validation.middleware";
 const router = express.Router();
 
 router.get("/", getAllContacts);
-router.get("/contact/:id", getContactById);
+router.get("/:id", getContactById);
 router.post("/contact", validateRequestBody(["name", "email", "phone", "subject", "message"]), newContact);
 
 
