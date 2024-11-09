@@ -20,7 +20,7 @@ const enquiry_route_1 = __importDefault(require("./routes/enquiry.route"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const corsOptions = {
-    origin: ["http://localhost:3000", "https://linkorgnet.com.ng"],
+    origin: ["http://localhost:3000", "https://linkorgnet.com.ng", "https://www.linkorgnet.com.ng"],
     credentials: true,
 };
 app.use((0, cors_1.default)(corsOptions));

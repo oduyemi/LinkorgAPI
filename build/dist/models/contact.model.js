@@ -11,7 +11,6 @@ const contactSchema = new mongoose_1.default.Schema({
     },
     email: {
         type: String,
-        unique: true,
         required: [true, "Email is required"],
         validate: {
             validator: (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),

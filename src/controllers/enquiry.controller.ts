@@ -32,13 +32,13 @@ export const getEnquiryById = async (req: Request, res: Response): Promise<void>
 
 export const newEnquiry = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { name, lname, email, company, address, phone, state, topic, message } = req.body;
+        const { fname, lname, email, company, address, phone, state, topic, message } = req.body;
 
-        if (![name, lname, email, company, address, phone, state, topic, message].every(field => field)) {
+        if (![fname, lname, email, company, address, phone, state, topic, message].every(field => field)) {
             res.status(400).json({ message: "All fields are required" });
             return; 
         }
-        const addEnquiry = new Enquiry({ name, lname, email, company, address, phone, state, topic, message });
+        const addEnquiry = new Enquiry({ fname, lname, email, company, address, phone, state, topic, message });
         await addEnquiry.save();
         res.status(201).json({ message: "New enquiry form added successfully" });
     } catch (error) {

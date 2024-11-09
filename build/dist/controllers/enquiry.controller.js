@@ -41,12 +41,12 @@ const getEnquiryById = (req, res) => __awaiter(void 0, void 0, void 0, function*
 exports.getEnquiryById = getEnquiryById;
 const newEnquiry = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, lname, email, company, address, phone, state, topic, message } = req.body;
-        if (![name, lname, email, company, address, phone, state, topic, message].every(field => field)) {
+        const { fname, lname, email, company, address, phone, state, topic, message } = req.body;
+        if (![fname, lname, email, company, address, phone, state, topic, message].every(field => field)) {
             res.status(400).json({ message: "All fields are required" });
             return;
         }
-        const addEnquiry = new enquiry_model_1.default({ name, lname, email, company, address, phone, state, topic, message });
+        const addEnquiry = new enquiry_model_1.default({ fname, lname, email, company, address, phone, state, topic, message });
         yield addEnquiry.save();
         res.status(201).json({ message: "New enquiry form added successfully" });
     }

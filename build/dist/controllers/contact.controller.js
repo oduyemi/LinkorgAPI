@@ -41,12 +41,12 @@ const getContactById = (req, res) => __awaiter(void 0, void 0, void 0, function*
 exports.getContactById = getContactById;
 const newContact = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, email, phone, message } = req.body;
+        const { name, email, phone, subject, message } = req.body;
         if (![name, email, phone, message].every(field => field)) {
             res.status(400).json({ message: "All fields are required" });
             return;
         }
-        const addContact = new contact_model_1.default({ name, email, phone, message });
+        const addContact = new contact_model_1.default({ name, email, phone, subject, message });
         yield addContact.save();
         res.status(201).json({ message: "New contact form added successfully" });
     }

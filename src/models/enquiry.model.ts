@@ -25,7 +25,6 @@ const enquirySchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    unique: true,
     required: [true, "Email is required"],
     validate: {
       validator: (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),

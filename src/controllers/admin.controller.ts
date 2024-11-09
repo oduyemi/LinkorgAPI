@@ -116,21 +116,21 @@ export const loginAdmin = async (req: Request, res: Response, next: NextFunction
         const { email, password } = req.body;
         if (!email || !password) {
             res.status(400).json({ message: "Email and password are required" });
-            return; // Ensure further code execution stops here
+            return; 
         }
 
         const admin: IAdmin | null = await Admin.findOne({ email });
         
         if (!admin) {
             res.status(401).json({ message: "Email not registered. Please register first." });
-            return; // Stop execution
+            return; 
         }
 
         const isMatch = await bcrypt.compare(password, admin.password);
   
         if (!isMatch) {
             res.status(400).json({ message: "Invalid credentials" });
-            return; // Stop execution
+            return;
         }
   
         const payload = { adminId: admin._id };
@@ -170,8 +170,6 @@ export const loginAdmin = async (req: Request, res: Response, next: NextFunction
 export const updateAdmin = async (req: Request, res: Response): Promise<void> => {
     try {
         const { adminId } = req.params;
-
-        // Validate admin ID
         if (!mongoose.Types.ObjectId.isValid(adminId)) {
             res.status(400).json({ message: "Invalid admin ID" });
             return;
@@ -244,7 +242,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
         const admin = await Admin.findById(adminId);
         if (!admin) {
             res.status(404).json({ message: "Admin not found" });
-            return; // Ensure the function stops execution after sending the response
+            return;
         }
 
         if (newPassword !== confirmNewPassword) {

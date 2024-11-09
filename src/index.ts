@@ -18,7 +18,7 @@ dotenv.config();
 const app: Application = express();
 
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://linkorgnet.com.ng"],
+  origin: ["http://localhost:3000", "https://linkorgnet.com.ng", "https://www.linkorgnet.com.ng"],
   credentials: true,
 };
 

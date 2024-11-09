@@ -15,7 +15,6 @@ const bookingSchema = new mongoose_1.default.Schema({
     },
     email: {
         type: String,
-        unique: true,
         required: true,
         validate: {
             validator: (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),

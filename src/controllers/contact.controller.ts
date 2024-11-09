@@ -30,14 +30,14 @@ export const getContactById = async (req: Request, res: Response): Promise<void>
 
 export const newContact = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { name, email, phone, message } = req.body;
+        const { name, email, phone, subject, message } = req.body;
 
         if (![name, email, phone, message].every(field => field)) {
             res.status(400).json({ message: "All fields are required" });
             return; 
         }
 
-        const addContact = new Contact({ name, email, phone, message });
+        const addContact = new Contact({ name, email, phone, subject, message });
         await addContact.save();
         res.status(201).json({ message: "New contact form added successfully" });
     } catch (error) {
