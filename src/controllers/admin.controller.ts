@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { hash, compare } from "bcrypt";
 import mongoose from "mongoose";
 import dotenv from "dotenv"
 import Admin, { IAdmin } from "../models/admin.model";
