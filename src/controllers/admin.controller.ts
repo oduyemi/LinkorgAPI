@@ -27,7 +27,7 @@ declare module "express-session" {
 
 export const getAllAdmin = async (req: Request, res: Response): Promise<void> => {
     try {
-        const administrators: IAdmin[] = await Admin.find();
+        const administrators: IAdmin[] = await Admin.find().select("-password");
         res.status(200).json(administrators);
     } catch (error:any) {
         res.status(500).json({ message: "Error retrieving administrators", error: error.message });
@@ -38,7 +38,7 @@ export const getAllAdmin = async (req: Request, res: Response): Promise<void> =>
 export const getAdminById = async (req: Request, res: Response): Promise<void> => {
     try {
         const adminId = req.params.adminId;
-        const admin: IAdmin | null = await Admin.findById(adminId);
+        const admin: IAdmin | null = await Admin.findById(adminId).select("-password");
     
         if (!admin) {
         res.status(404).json({ Message: "Admin not found" });
