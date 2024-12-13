@@ -36,17 +36,18 @@ export const getAllAdmin = async (req: Request, res: Response): Promise<void> =>
 
 
 export const getAdminById = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
-
     try {
-        const admin: IAdmin | null = await Admin.findById(id);
+        const adminId = req.params.adminId;
+        const admin: IAdmin | null = await Admin.findById(adminId);
+    
         if (!admin) {
-            res.status(404).json({ message: "Admin not found" });
-            return;
+        res.status(404).json({ Message: "Admin not found" });
+        } else {
+        res.json({ data: admin });
         }
-        res.status(200).json(admin);
-    } catch (error:any) {
-        res.status(500).json({ message: "Error retrieving admin", error: error.message });
+    } catch (error) {
+        console.error("Error fetching data from the database", error);
+        res.status(500).json({ Message: "Internal Server Error" });
     }
 };
 

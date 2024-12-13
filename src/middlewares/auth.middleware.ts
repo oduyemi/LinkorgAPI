@@ -47,3 +47,5 @@ export const authenticateAdmin = async (req: Request, res: Response, next: NextF
         res.status(500).json({ message: "Internal server error during authentication." });
     }
 };
+
+
