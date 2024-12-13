@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import Contact, { IContact } from "../models/contact.model";
+import { sendEmail } from "../utils/email"; 
+import dotenv from "dotenv";
 
+dotenv.config();
 
 
 export const getAllContacts = async (req: Request, res: Response): Promise<void> => {
@@ -28,22 +31,44 @@ export const getContactById = async (req: Request, res: Response): Promise<void>
     }
 };
 
+
 export const newContact = async (req: Request, res: Response): Promise<void> => {
     try {
         const { name, email, phone, subject, message } = req.body;
-
         if (![name, email, phone, message].every(field => field)) {
             res.status(400).json({ message: "All fields are required" });
-            return; 
+            return;
         }
 
-        const addContact = new Contact({ name, email, phone, subject, message });
-        await addContact.save();
-        res.status(201).json({ message: "New contact form added successfully" });
+        const newContactEntry = new Contact({ name, email, phone, subject, message });
+        await newContactEntry.save();
+
+        // Email Notification
+        const mailOptions = {
+            from: `"LinkOrg Contact Form" <${process.env.SMTP_USERNAME}>`,
+            to: "nok@linkorgnet.com", 
+            cc: "hello@linkorgnet.com",
+            subject: `New Contact Form Submission${subject ? `: ${subject}` : ""}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                    <h2 style="color: #2c3e50;">New Contact Form Submission</h2>
+                    <p>A new contact form has been submitted with the following details:</p>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr><td style="font-weight: bold;">Name:</td><td>${name}</td></tr>
+                        <tr><td style="font-weight: bold;">Email:</td><td>${email}</td></tr>
+                        <tr><td style="font-weight: bold;">Phone:</td><td>${phone}</td></tr>
+                        ${subject ? `<tr><td style="font-weight: bold;">Subject:</td><td>${subject}</td></tr>` : ""}
+                        <tr><td style="font-weight: bold;">Message:</td><td>${message}</td></tr>
+                    </table>
+                    <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
+                </div>
+            `,
+        };
+
+        await sendEmail(mailOptions);
+        res.status(201).json({ message: "New contact form added successfully, and email sent." });
     } catch (error) {
-        console.error("Error during contact data creation:", error);
-        res.status(500).json({ message: "Error creating contact data" });
+        console.error("Error during contact data creation or email sending:", error);
+        res.status(500).json({ message: "Error creating contact data or sending email" });
     }
 };
-
-

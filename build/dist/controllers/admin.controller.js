@@ -97,17 +97,17 @@ const loginAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         const { email, password } = req.body;
         if (!email || !password) {
             res.status(400).json({ message: "Email and password are required" });
-            return; // Ensure further code execution stops here
+            return;
         }
         const admin = yield admin_model_1.default.findOne({ email });
         if (!admin) {
             res.status(401).json({ message: "Email not registered. Please register first." });
-            return; // Stop execution
+            return;
         }
         const isMatch = yield bcrypt_1.default.compare(password, admin.password);
         if (!isMatch) {
             res.status(400).json({ message: "Invalid credentials" });
-            return; // Stop execution
+            return;
         }
         const payload = { adminId: admin._id };
         const token = jsonwebtoken_1.default.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -141,7 +141,6 @@ exports.loginAdmin = loginAdmin;
 const updateAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { adminId } = req.params;
-        // Validate admin ID
         if (!mongoose_1.default.Types.ObjectId.isValid(adminId)) {
             res.status(400).json({ message: "Invalid admin ID" });
             return;
@@ -202,7 +201,7 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const admin = yield admin_model_1.default.findById(adminId);
         if (!admin) {
             res.status(404).json({ message: "Admin not found" });
-            return; // Ensure the function stops execution after sending the response
+            return;
         }
         if (newPassword !== confirmNewPassword) {
             res.status(400).json({ message: "Both passwords must match!" });
