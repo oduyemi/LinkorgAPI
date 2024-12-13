@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import Contact, { IContact } from "../models/contact.model";
 import { sendEmail } from "../utils/email"; 
+import Inbox, { InboxDocument } from "../models/inbox.model";
 import dotenv from "dotenv";
+
 
 dotenv.config();
 
@@ -42,6 +44,14 @@ export const newContact = async (req: Request, res: Response): Promise<void> => 
 
         const newContactEntry = new Contact({ name, email, phone, subject, message });
         await newContactEntry.save();
+        const newInboxEntry: InboxDocument = new Inbox({
+            formType: "Contact",
+            senderName: name,
+            senderEmail: email,
+            subject,
+            message,
+        });
+        await newInboxEntry.save();
 
         // Email Notification
         const mailOptions = {

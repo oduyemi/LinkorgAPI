@@ -1,5 +1,5 @@
 import { SendMailOptions } from "nodemailer";
-import { transporter } from "../controllers/booking.controller";
+import { transporter } from "../utils/transporter";
 
 
 interface EmailOptions extends SendMailOptions {
@@ -9,6 +9,7 @@ interface EmailOptions extends SendMailOptions {
     subject: string;
     html: string;
 }
+
 
 
 export const sendEmail = async (mailOptions: EmailOptions): Promise<void> => {

@@ -1,12 +1,10 @@
 import { Request, Response } from "express";
 import Enquiry, { IEnquiry } from "../models/enquiry.model";
-import { sendEmail } from "../utils/email"; 
+import { sendEmail } from "../utils/email";
+import Inbox, { InboxDocument } from "../models/inbox.model"; 
 import dotenv from "dotenv";
 
-
 dotenv.config();
-
-
 
 export const getAllEnquiries = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -43,6 +41,14 @@ export const newEnquiry = async (req: Request, res: Response): Promise<void> => 
 
         const newEnquiryEntry = new Enquiry({ fname, lname, email, company, address, phone, state, topic, message });
         await newEnquiryEntry.save();
+        const newInboxEntry: InboxDocument = new Inbox({
+            formType: "Enquiry",
+            senderName: `${fname} ${lname}`,
+            senderEmail: email,
+            subject: topic,
+            message,
+        });
+        await newInboxEntry.save();
 
         // Email Notification
         const mailOptions = {

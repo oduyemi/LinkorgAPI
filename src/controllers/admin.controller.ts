@@ -78,7 +78,7 @@ export const registerAdmin = async (req: Request, res: Response): Promise<void> 
         const token = jwt.sign(
             { adminID: newAdmin._id, email: newAdmin.email },
             process.env.JWT_SECRET!,
-            { expiresIn: '1h' }
+            { expiresIn: "1h" }
         );
 
         const adminSession = {

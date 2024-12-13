@@ -1,29 +1,11 @@
 import { Request, Response } from "express";
 import Booking, { IBooking } from "../models/booking.model";
-import nodemailer from "nodemailer";
 import { sendEmail } from "../utils/email";
+import Inbox, { InboxDocument } from "../models/inbox.model";
 import dotenv from "dotenv";
 
 
 dotenv.config();
-
-
-
-export const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT!, 25),              
-    secure: false,
-    auth: {
-        user: process.env.SMTP_USERNAME, 
-        pass: process.env.SMTP_PWD, 
-    },
-    tls: {
-        ciphers: 'SSLv3', 
-        rejectUnauthorized: false,
-        },
-        logger: false,  
-        debug: false,
-});
 
 
 export const getAllBookings = async (req: Request, res: Response): Promise<void> => {
@@ -51,8 +33,6 @@ export const getBookingById = async (req: Request, res: Response): Promise<void>
     }
 };
 
-
-
 export const newBooking = async (req: Request, res: Response): Promise<void> => {
     try {
         const { name, company, email, address, service, how, phone, state, lga, specialRequest } = req.body;
@@ -64,7 +44,13 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
 
         const addBooking = new Booking({ name, company, email, address, service, how, phone, state, lga, specialRequest });
         await addBooking.save();
-
+        const newInboxEntry: InboxDocument = new Inbox({
+            formType: "Booking",
+            senderName: name,
+            senderEmail: email,
+            message: `Service: ${service}, Special Request: ${specialRequest}`,
+        });
+        await newInboxEntry.save();
         const mailOptions = {
             from: `"LinkOrg Bookings" <${process.env.SMTP_USERNAME}>`,
             to: "nok@linkorgnet.com",
