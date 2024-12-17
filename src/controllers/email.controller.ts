@@ -60,9 +60,10 @@ export const getSentEmailById = async (req: Request, res: Response): Promise<voi
     }
 };
 
+
 export const sendEmail = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { email, subject, name, message } = req.body;
+        const { email, subject, name = "LinkOrg Networks LTD", message } = req.body;
         if (![email, subject, name, message].every(field => field)) {
             res.status(400).json({ message: "All fields (email, subject, name, message) are required" });
             return;
@@ -70,6 +71,16 @@ export const sendEmail = async (req: Request, res: Response): Promise<void> => {
 
         if (!validator.isEmail(email)) {
             res.status(400).json({ message: "Invalid email format" });
+            return;
+        }
+
+        if (message.trim().length === 0) {
+            res.status(400).json({ message: "Message cannot be empty" });
+            return;
+        }
+
+        if (!process.env.SMTP_USERNAME || !process.env.SMTP_PWD) {
+            res.status(500).json({ message: "SMTP credentials are not set correctly" });
             return;
         }
 
@@ -97,6 +108,7 @@ export const sendEmail = async (req: Request, res: Response): Promise<void> => {
 
         await newEmail.save();
         res.status(200).json({ message: "Email sent and saved successfully!" });
+
     } catch (error: any) {
         console.error("Error sending email:", error.stack || error);
         res.status(500).json({ message: "Failed to send email. Please try again later." });

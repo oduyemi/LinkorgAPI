@@ -239,9 +239,19 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
         const adminId = req.params.adminId;
         const { oldPassword, newPassword, confirmNewPassword } = req.body;
 
+        if (!oldPassword || !newPassword || !confirmNewPassword) {
+            res.status(400).json({ message: "All fields are required: oldPassword, newPassword, confirmNewPassword" });
+            return;
+        }
+
         const admin = await Admin.findById(adminId);
         if (!admin) {
             res.status(404).json({ message: "Admin not found" });
+            return;
+        }
+
+        if (!admin.password) {
+            res.status(400).json({ message: "Admin has no password set. Cannot reset." });
             return;
         }
 
@@ -258,6 +268,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 
         admin.password = await bcrypt.hash(newPassword, 10);
         await admin.save();
+
         res.status(200).json({ message: "Password reset successfully" });
     } catch (error) {
         console.error("Error resetting admin password:", error);
