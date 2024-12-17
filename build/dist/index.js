@@ -17,6 +17,7 @@ const admin_route_1 = __importDefault(require("./routes/admin.route"));
 const booking_route_1 = __importDefault(require("./routes/booking.route"));
 const contact_route_1 = __importDefault(require("./routes/contact.route"));
 const enquiry_route_1 = __importDefault(require("./routes/enquiry.route"));
+const email_route_1 = __importDefault(require("./routes/email.route"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const corsOptions = {
@@ -49,6 +50,7 @@ app.use("/api/v1/admin", admin_route_1.default);
 app.use("/api/v1/bookings", booking_route_1.default);
 app.use("/api/v1/contacts", contact_route_1.default);
 app.use("/api/v1/enquiries", enquiry_route_1.default);
+app.use("/api/v1/email", email_route_1.default);
 app.all("*", (req, res, next) => {
     next(new appError_1.default(`The route ${req.originalUrl} with the ${req.method} method does not exist on this server! 💨`, 404));
 });

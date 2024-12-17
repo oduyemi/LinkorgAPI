@@ -14,6 +14,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.newEnquiry = exports.getEnquiryById = exports.getAllEnquiries = void 0;
 const enquiry_model_1 = __importDefault(require("../models/enquiry.model"));
+const email_1 = require("../utils/email");
+const inbox_model_1 = __importDefault(require("../models/inbox.model"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const getAllEnquiries = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const enquiries = yield enquiry_model_1.default.find();
@@ -46,13 +50,47 @@ const newEnquiry = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             res.status(400).json({ message: "All fields are required" });
             return;
         }
-        const addEnquiry = new enquiry_model_1.default({ fname, lname, email, company, address, phone, state, topic, message });
-        yield addEnquiry.save();
-        res.status(201).json({ message: "New enquiry form added successfully" });
+        const newEnquiryEntry = new enquiry_model_1.default({ fname, lname, email, company, address, phone, state, topic, message });
+        yield newEnquiryEntry.save();
+        const newInboxEntry = new inbox_model_1.default({
+            formType: "Enquiry",
+            senderName: `${fname} ${lname}`,
+            senderEmail: email,
+            subject: topic,
+            message,
+        });
+        yield newInboxEntry.save();
+        // Email Notification
+        const mailOptions = {
+            from: `"LinkOrg Enquiries" <${process.env.SMTP_USERNAME}>`,
+            to: "nok@linkorgnet.com",
+            cc: "hello@linkorgnet.com",
+            subject: `New Enquiry Received${topic ? `: ${topic}` : ""}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                    <h2 style="color: #2c3e50;">New Enquiry Form Submission</h2>
+                    <p>A new enquiry form has been submitted with the following details:</p>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr><td style="font-weight: bold;">First Name:</td><td>${fname}</td></tr>
+                        <tr><td style="font-weight: bold;">Last Name:</td><td>${lname}</td></tr>
+                        <tr><td style="font-weight: bold;">Email:</td><td>${email}</td></tr>
+                        <tr><td style="font-weight: bold;">Company:</td><td>${company}</td></tr>
+                        <tr><td style="font-weight: bold;">Phone:</td><td>${phone}</td></tr>
+                        <tr><td style="font-weight: bold;">Address:</td><td>${address}</td></tr>
+                        <tr><td style="font-weight: bold;">State:</td><td>${state}</td></tr>
+                        <tr><td style="font-weight: bold;">Topic:</td><td>${topic}</td></tr>
+                        <tr><td style="font-weight: bold;">Message:</td><td>${message}</td></tr>
+                    </table>
+                    <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
+                </div>
+            `,
+        };
+        yield (0, email_1.sendEmail)(mailOptions);
+        res.status(201).json({ message: "New enquiry form added successfully, and email sent." });
     }
     catch (error) {
-        console.error("Error during enquiry data creation:", error);
-        res.status(500).json({ message: "Error creating enquiry data" });
+        console.error("Error during enquiry data creation or email sending:", error);
+        res.status(500).json({ message: "Error creating enquiry data or sending email" });
     }
 });
 exports.newEnquiry = newEnquiry;

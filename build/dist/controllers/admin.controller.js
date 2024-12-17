@@ -21,7 +21,7 @@ const admin_model_1 = __importDefault(require("../models/admin.model"));
 dotenv_1.default.config();
 const getAllAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const administrators = yield admin_model_1.default.find();
+        const administrators = yield admin_model_1.default.find().select("-password");
         res.status(200).json(administrators);
     }
     catch (error) {
@@ -30,17 +30,19 @@ const getAllAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 });
 exports.getAllAdmin = getAllAdmin;
 const getAdminById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.params;
     try {
-        const admin = yield admin_model_1.default.findById(id);
+        const adminId = req.params.adminId;
+        const admin = yield admin_model_1.default.findById(adminId).select("-password");
         if (!admin) {
-            res.status(404).json({ message: "Admin not found" });
-            return;
+            res.status(404).json({ Message: "Admin not found" });
         }
-        res.status(200).json(admin);
+        else {
+            res.json({ data: admin });
+        }
     }
     catch (error) {
-        res.status(500).json({ message: "Error retrieving admin", error: error.message });
+        console.error("Error fetching data from the database", error);
+        res.status(500).json({ Message: "Internal Server Error" });
     }
 });
 exports.getAdminById = getAdminById;
@@ -63,7 +65,7 @@ const registerAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const hashedPassword = yield bcrypt_1.default.hash(password, 10);
         const newAdmin = new admin_model_1.default({ fname, lname, email, phone, password: hashedPassword });
         yield newAdmin.save();
-        const token = jsonwebtoken_1.default.sign({ adminID: newAdmin._id, email: newAdmin.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jsonwebtoken_1.default.sign({ adminID: newAdmin._id, email: newAdmin.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
         const adminSession = {
             adminID: newAdmin._id,
             fname: newAdmin.fname,
@@ -198,9 +200,17 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const adminId = req.params.adminId;
         const { oldPassword, newPassword, confirmNewPassword } = req.body;
+        if (!oldPassword || !newPassword || !confirmNewPassword) {
+            res.status(400).json({ message: "All fields are required: oldPassword, newPassword, confirmNewPassword" });
+            return;
+        }
         const admin = yield admin_model_1.default.findById(adminId);
         if (!admin) {
             res.status(404).json({ message: "Admin not found" });
+            return;
+        }
+        if (!admin.password) {
+            res.status(400).json({ message: "Admin has no password set. Cannot reset." });
             return;
         }
         if (newPassword !== confirmNewPassword) {

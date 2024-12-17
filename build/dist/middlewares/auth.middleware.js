@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authenticateAdmin = void 0;
+const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const admin_model_1 = __importDefault(require("../models/admin.model"));
 dotenv_1.default.config();
@@ -20,20 +21,23 @@ const authenticateAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     try {
         if (!req.session.admin) {
             res.status(401).json({ message: "Unauthorized. No admin session found." });
-            return; // Ensure no further processing after sending a response.
+            return;
         }
         const { adminID } = req.session.admin;
+        if (!mongoose_1.default.Types.ObjectId.isValid(adminID)) {
+            res.status(400).json({ message: "Invalid admin ID format." });
+            return;
+        }
         const admin = yield admin_model_1.default.findById(adminID);
         if (!admin) {
             res.status(404).json({ message: "Admin not found." });
-            return; // Stop further processing.
+            return;
         }
-        next(); // Call next if authentication is successful.
+        next();
     }
     catch (error) {
-        console.error("Error during authentication:", error);
-        res.status(401).json({ message: "Unauthorized. Invalid session or token." });
-        return; // Stop further processing.
+        console.error("Error during admin authentication:", error);
+        res.status(500).json({ message: "Internal server error during authentication." });
     }
 });
 exports.authenticateAdmin = authenticateAdmin;
