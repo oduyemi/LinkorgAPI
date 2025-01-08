@@ -13,6 +13,7 @@ import bookingRoutes from "./routes/booking.route";
 import contactRoutes from "./routes/contact.route";
 import enquiryRoutes from "./routes/enquiry.route";
 import emailRoutes from "./routes/email.route";
+import oauthRouter from './routes/oauthRoutes';
 
 
 dotenv.config();
@@ -59,6 +60,7 @@ app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/contacts", contactRoutes);
 app.use("/api/v1/enquiries", enquiryRoutes); 
 app.use("/api/v1/email", emailRoutes);
+app.use('/api/v1/oauth', oauthRouter);
 
 
 
