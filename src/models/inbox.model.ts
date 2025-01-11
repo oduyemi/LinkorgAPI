@@ -34,6 +34,7 @@ const inboxSchema = new Schema<InboxDocument>({
         type: Date,
         default: Date.now,
     },
+
 });
 
 const Inbox = mongoose.model<InboxDocument>('Inbox', inboxSchema);
