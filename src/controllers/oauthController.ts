@@ -56,7 +56,7 @@ export const oauthCallback = async (req: Request, res: Response): Promise<void> 
     const accessToken = await getAccessToken();
     console.log('Access Token:', accessToken);
 
-    // Perform an action, such as sending a test email
+    
     res.send('Authorization successful. Access token obtained.');
   } catch (error: any) {
     console.error('Error in OAuth callback:', error.message);

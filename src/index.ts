@@ -24,10 +24,16 @@ const corsOptions = {
   credentials: true,
 };
 
-
+app.use(express.json());
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use((req, res, next) => {
+  console.log("Headers:", req.headers);
+  console.log("Request Body:", req.body);
+  next();
+});
 
 
 // Session configuration
