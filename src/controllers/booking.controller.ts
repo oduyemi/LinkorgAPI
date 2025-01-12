@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import Booking, { IBooking } from "../models/booking.model";
-import { sendEmail } from "../utils/email";
-import Inbox, { InboxDocument } from "../models/inbox.model";
+import Inbox from "../models/inbox.model";
+import { bookingMail } from "../helper/bookingMail";
 import dotenv from "dotenv";
+import { sendEmailWithRetry } from "../helper/emailSample";
 
 
 dotenv.config();
@@ -33,55 +34,101 @@ export const getBookingById = async (req: Request, res: Response): Promise<void>
     }
 };
 
+
 export const newBooking = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { name, company, email, address, service, how, phone, state, lga, specialRequest } = req.body;
+        const {
+            name,
+            company,
+            email,
+            address,
+            service,
+            how,
+            phone,
+            state,
+            lga,
+            specialRequest,
+        } = req.body;
 
-        if (![name, company, email, address, service, how, phone, state, lga, specialRequest].every(Boolean)) {
+        if (
+            ![
+                name,
+                company,
+                email,
+                address,
+                service,
+                how,
+                phone,
+                state,
+                lga,
+                specialRequest,
+            ].every(Boolean)
+        ) {
             res.status(400).json({ message: "All fields are required" });
             return;
         }
 
-        const addBooking = new Booking({ name, company, email, address, service, how, phone, state, lga, specialRequest });
+        const addBooking = new Booking({
+            name,
+            company,
+            email,
+            address,
+            service,
+            how,
+            phone,
+            state,
+            lga,
+            specialRequest,
+        });
+
         await addBooking.save();
-        const newInboxEntry: InboxDocument = new Inbox({
+
+        const newInboxEntry = new Inbox({
             formType: "Booking",
             senderName: name,
             senderEmail: email,
             message: `Service: ${service}, Special Request: ${specialRequest}`,
         });
+
         await newInboxEntry.save();
-        const mailOptions = {
-            from: `"LinkOrg Bookings" <${process.env.SMTP_USERNAME}>`,
-            to: "nok@linkorgnet.com",
-            cc: "hello@linkorgnet.com",
-            subject: "New Booking Form Submission",
-            html: `
-                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                    <h2 style="color: #2c3e50;">New Booking Form Submission</h2>
-                    <p>A new booking form has been submitted with the following details:</p>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr><td style="font-weight: bold;">Name:</td><td>${name}</td></tr>
-                        <tr><td style="font-weight: bold;">Company:</td><td>${company}</td></tr>
-                        <tr><td style="font-weight: bold;">Email:</td><td>${email}</td></tr>
-                        <tr><td style="font-weight: bold;">Phone:</td><td>${phone}</td></tr>
-                        <tr><td style="font-weight: bold;">Address:</td><td>${address}</td></tr>
-                        <tr><td style="font-weight: bold;">State:</td><td>${state}</td></tr>
-                        <tr><td style="font-weight: bold;">LGA:</td><td>${lga}</td></tr>
-                        <tr><td style="font-weight: bold;">Service:</td><td>${service}</td></tr>
-                        <tr><td style="font-weight: bold;">How:</td><td>${how}</td></tr>
-                        <tr><td style="font-weight: bold;">Special Request:</td><td>${specialRequest}</td></tr>
-                    </table>
-                    <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
-                </div>
-            `,
-        };
 
-        await sendEmail(mailOptions);
+        await bookingMail(email);
 
-        res.status(201).json({ message: "New booking form added successfully, and email sent." });
+        const subject = "New Booking Form Submission";
+        const htmlContent = `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h2 style="color: #2c3e50;">New Booking Form Submission</h2>
+                <p>A new booking form has been submitted with the following details:</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr><td style="font-weight: bold;">Name:</td><td>${name}</td></tr>
+                    <tr><td style="font-weight: bold;">Company:</td><td>${company}</td></tr>
+                    <tr><td style="font-weight: bold;">Email:</td><td>${email}</td></tr>
+                    <tr><td style="font-weight: bold;">Phone:</td><td>${phone}</td></tr>
+                    <tr><td style="font-weight: bold;">Address:</td><td>${address}</td></tr>
+                    <tr><td style="font-weight: bold;">State:</td><td>${state}</td></tr>
+                    <tr><td style="font-weight: bold;">LGA:</td><td>${lga}</td></tr>
+                    <tr><td style="font-weight: bold;">Service:</td><td>${service}</td></tr>
+                    <tr><td style="font-weight: bold;">How:</td><td>${how}</td></tr>
+                    <tr><td style="font-weight: bold;">Special Request:</td><td>${specialRequest}</td></tr>
+                </table>
+                <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
+            </div>
+        `;
+
+        await sendEmailWithRetry(
+            "nok@linkorgnet.com",
+            subject,
+            htmlContent,
+            3
+        );
+
+        res.status(201).json({
+            message: "New booking form added successfully, and email sent.", newInboxEntry
+        });
     } catch (error) {
         console.error("Error during booking creation or email sending:", error);
-        res.status(500).json({ message: "Error creating booking or sending email" });
+        res.status(500).json({
+            message: "Error creating booking or sending email",
+        });
     }
 };

@@ -13,6 +13,7 @@ import bookingRoutes from "./routes/booking.route";
 import contactRoutes from "./routes/contact.route";
 import enquiryRoutes from "./routes/enquiry.route";
 import emailRoutes from "./routes/email.route";
+import oauthRouter from './routes/oauthRoutes';
 
 
 dotenv.config();
@@ -23,10 +24,16 @@ const corsOptions = {
   credentials: true,
 };
 
-
+app.use(express.json());
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use((req, res, next) => {
+  console.log("Headers:", req.headers);
+  console.log("Request Body:", req.body);
+  next();
+});
 
 
 // Session configuration
@@ -59,6 +66,7 @@ app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/contacts", contactRoutes);
 app.use("/api/v1/enquiries", enquiryRoutes); 
 app.use("/api/v1/email", emailRoutes);
+app.use('/api/v1/oauth', oauthRouter);
 
 
 
