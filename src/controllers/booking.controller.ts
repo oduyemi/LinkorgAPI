@@ -116,7 +116,7 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
         `;
 
         await sendEmailWithRetry(
-            "nok@linkorgnet.com",
+            "noc@linkorgnet.com",
             subject,
             htmlContent,
             3

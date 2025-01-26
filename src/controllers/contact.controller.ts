@@ -75,7 +75,7 @@ export const newContact = async (req: Request, res: Response): Promise<void> => 
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
             </div>`;
 
-        await sendEmailWithRetry("nok@linkorgnet.com", subjectForAdmin, htmlContent, 3);
+        await sendEmailWithRetry("noc@linkorgnet.com", subjectForAdmin, htmlContent, 3);
 
         res.status(201).json({ message: "New contact form added successfully, and email sent.", newContactEntry });
     } catch (error) {

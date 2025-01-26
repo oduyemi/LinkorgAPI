@@ -58,7 +58,7 @@ export const getEnquiryById = async (req: Request, res: Response): Promise<void>
 //         // Email Notification
 //         const mailOptions = {
 //             from: `"LinkOrg Enquiries" <${process.env.SMTP_USERNAME}>`,
-//             to: "nok@linkorgnet.com",
+//             to: "noc@linkorgnet.com",
 //             cc: "hello@linkorgnet.com",
 //             subject: `New Enquiry Received${topic ? `: ${topic}` : ""}`,
 //             html: `
@@ -130,7 +130,7 @@ export const newEnquiry = async (req: Request, res: Response): Promise<void> => 
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
             </div>`;
 
-        await sendEmailWithRetry("nok@linkorgnet.com", subjectForAdmin, htmlContent, 3);
+        await sendEmailWithRetry("noc@linkorgnet.com", subjectForAdmin, htmlContent, 3);
 
         res.status(201).json({ message: "New enquiry form added successfully, and email sent.", newEnquiryEntry });
     } catch (error) {

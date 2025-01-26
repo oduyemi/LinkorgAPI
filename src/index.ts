@@ -14,7 +14,8 @@ import contactRoutes from "./routes/contact.route";
 import enquiryRoutes from "./routes/enquiry.route";
 import emailRoutes from "./routes/email.route";
 import oauthRouter from './routes/oauthRoutes';
-
+import retailRouter from './routes/retail.route';
+import enterpriseRouter from './routes/enterprise.route';
 
 dotenv.config();
 const app: Application = express();
@@ -67,7 +68,8 @@ app.use("/api/v1/contacts", contactRoutes);
 app.use("/api/v1/enquiries", enquiryRoutes); 
 app.use("/api/v1/email", emailRoutes);
 app.use('/api/v1/oauth', oauthRouter);
-
+app.use('/api/v1/retail', retailRouter)
+app.use('/api/v1/enterprise', enterpriseRouter)
 
 
 app.all("*", (req, res, next) => {
