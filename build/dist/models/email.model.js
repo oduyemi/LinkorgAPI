@@ -27,9 +27,10 @@ const mongoose_1 = __importStar(require("mongoose"));
 const EmailSchema = new mongoose_1.Schema({
     email: { type: String, required: true },
     subject: { type: String, required: true },
-    name: { type: String, required: true },
+    name: { type: String, required: false },
     message: { type: String, required: true },
     sentAt: { type: Date, default: Date.now },
+    folder: { type: String, enum: ['Sent', 'Inbox'], required: true },
 });
 const Email = mongoose_1.default.model("Email", EmailSchema);
 exports.default = Email;
