@@ -8,4 +8,4 @@ router.get("/", getIndex);
 
 
 
-export default router;;
+export default router;
