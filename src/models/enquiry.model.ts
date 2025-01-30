@@ -11,6 +11,7 @@ export interface IEnquiry extends Document {
   state: string;
   topic: string;
   message: string;
+  status: string;
   createdAt: Date;
 }
 
@@ -59,6 +60,14 @@ const enquirySchema = new mongoose.Schema({
     type: String,
     required: [true, "Message is required"],
   },
+
+  status: {
+    type: String,
+    enum: ["pending", "working", "resolved", "rejected"],
+    required: true,
+    default: "pending",
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,

@@ -49,14 +49,13 @@ export const retailBooking = async (req: Request, res: Response): Promise<void> 
             how,
             note,
         } = req.body;
-
-        if (![fullname, email, phone, address, plan, price, installation, how].every(Boolean)) {
+        if (!fullname || !email || !phone || !address || !plan || !price || !installation || !how) {
             res.status(400).json({ message: "All required fields must be filled" });
             return;
         }
-
+        
         const taxRate = 0.075;
-        const totalAmount = (price + installation) * (1 + taxRate);
+        const totalAmount = (Number(price) + Number(installation)) * (1 + taxRate);
         const addRetailBooking = new Retail({
             fullname,
             company,
@@ -92,9 +91,9 @@ export const retailBooking = async (req: Request, res: Response): Promise<void> 
                     <tr><td style="font-weight: bold;">Email:</td><td>${email}</td></tr>
                     <tr><td style="font-weight: bold;">Phone:</td><td>${phone}</td></tr>
                     <tr><td style="font-weight: bold;">Address:</td><td>${address}</td></tr>
-                    <tr><td style="font-weight: bold;">State:</td><td>${plan}</td></tr>
-                    <tr><td style="font-weight: bold;">LGA:</td><td>${price}</td></tr>
-                    <tr><td style="font-weight: bold;">Service:</td><td>${installation}</td></tr>
+                    <tr><td style="font-weight: bold;">Plan:</td><td>${plan}</td></tr>
+                    <tr><td style="font-weight: bold;">Price:</td><td>${price}</td></tr>
+                    <tr><td style="font-weight: bold;">Installation:</td><td>${installation}</td></tr>
                     <tr><td style="font-weight: bold;">How did you hear about us?:</td><td>${how}</td></tr>
                     <tr><td style="font-weight: bold;">Additional Note:</td><td>${note}</td></tr>
                     <tr><td style="font-weight: bold;">Total Amount:</td><td>${totalAmount.toFixed(2)}</td></tr>

@@ -12,6 +12,7 @@ export interface IRetail extends Document {
   installation: string;
   how: string;
   note?: string;
+  status: string;
   createdAt: Date;
 }
 
@@ -73,6 +74,13 @@ const retailSchema = new mongoose.Schema(
 
     note: {
       type: String,
+    },
+
+    status: {
+      type: String,
+      enum: ["pending", "working", "resolved", "rejected"],
+      required: true,
+      default: "pending",
     },
 
     createdAt: {

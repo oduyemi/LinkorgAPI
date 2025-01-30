@@ -11,6 +11,7 @@ export interface IEnterprise extends Document {
   address: string;
   plan: string;
   how: string;
+  status: string;
   createdAt: Date;
 }
 
@@ -62,6 +63,13 @@ const enterpriseSchema = new mongoose.Schema(
       type: String,
       required: [true, "Answer the question"],
       enum: ["Search Engine", "Social Media", "LinkedIn", "Friends/Family"],
+    },
+ 
+    status: {
+      type: String,
+      enum: ["pending", "working", "resolved", "rejected"],
+      required: true,
+      default: "pending",
     },
 
     createdAt: {
