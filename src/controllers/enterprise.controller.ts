@@ -3,7 +3,7 @@ import Enterprise, { IEnterprise } from "../models/enterprise.model";
 import Inbox from "../models/inbox.model";
 import { bookingMail } from "../helper/bookingMail";
 import dotenv from "dotenv";
-import { sendEmailWithRetry } from "../helper/emailSample";
+import { sendEmailWithRetry } from "../helper/emailLogic";
 
 
 dotenv.config();
@@ -78,7 +78,7 @@ export const enterpriseBooking = async (req: Request, res: Response): Promise<vo
         await newInboxEntry.save();
 
         // Send booking confirmation email
-        await bookingMail(email);
+        await bookingMail(email, fullname);
 
         // Email content
         const subject = "New Booking For Enterprise Internet Plan Booking";
@@ -99,14 +99,17 @@ export const enterpriseBooking = async (req: Request, res: Response): Promise<vo
                     <tr><td style="font-weight: bold;">Additional Note:</td><td>${note}</td></tr>
                 </table>
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
+                 <p style="margin-top: 20px;">You can send an email directly to the Customer @ ${email} where necessary </p>
             </div>
         `;
 
-        await sendEmailWithRetry("noc@linkorgnet.com", subject, htmlContent, 3);
-        res.status(201).json({
-            message: "New enterprise booking form added successfully, and email sent.",
-            newInboxEntry,
-        });
+        const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
+           await Promise.all(
+               recipients.map((recipient) =>
+                   sendEmailWithRetry(recipient, subject, htmlContent, 3)
+               )
+           );
+           res.status(201).json({ message: "New Booking request made successfully, and email sent.", addEnterpriseBooking });
     } catch (error) {
         console.error("Error during booking creation or email sending:", error);
         res.status(500).json({

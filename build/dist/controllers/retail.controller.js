@@ -17,7 +17,7 @@ const retail_model_1 = __importDefault(require("../models/retail.model"));
 const inbox_model_1 = __importDefault(require("../models/inbox.model"));
 const bookingMail_1 = require("../helper/bookingMail");
 const dotenv_1 = __importDefault(require("dotenv"));
-const emailSample_1 = require("../helper/emailSample");
+const emailLogic_1 = require("../helper/emailLogic");
 dotenv_1.default.config();
 const getAllRetailPlans = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -74,7 +74,7 @@ const retailBooking = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             message: `Service: ${plan}, Additional Note: ${note}, Total Amount: ${totalAmount}`,
         });
         yield newInboxEntry.save();
-        yield (0, bookingMail_1.bookingMail)(email);
+        yield (0, bookingMail_1.bookingMail)(email, fullname);
         const subject = "New Booking For Retail/SME Internet Plan Booking";
         const htmlContent = `
             <div style="font-family: Arial, sans-serif; line-height: 1.6;">
@@ -96,11 +96,9 @@ const retailBooking = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
             </div>
         `;
-        yield (0, emailSample_1.sendEmailWithRetry)("noc@linkorgnet.com", subject, htmlContent, 3);
-        res.status(201).json({
-            message: "New booking form added successfully, and email sent.",
-            newInboxEntry,
-        });
+        const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
+        yield Promise.all(recipients.map((recipient) => (0, emailLogic_1.sendEmailWithRetry)(recipient, subject, htmlContent, 3)));
+        res.status(201).json({ message: "New Booking request made successfully, and email sent.", addRetailBooking });
     }
     catch (error) {
         console.error("Error during booking creation or email sending:", error);

@@ -17,7 +17,7 @@ const enterprise_model_1 = __importDefault(require("../models/enterprise.model")
 const inbox_model_1 = __importDefault(require("../models/inbox.model"));
 const bookingMail_1 = require("../helper/bookingMail");
 const dotenv_1 = __importDefault(require("dotenv"));
-const emailSample_1 = require("../helper/emailSample");
+const emailLogic_1 = require("../helper/emailLogic");
 dotenv_1.default.config();
 const getAllEnteprisePlans = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -72,7 +72,7 @@ const enterpriseBooking = (req, res) => __awaiter(void 0, void 0, void 0, functi
         });
         yield newInboxEntry.save();
         // Send booking confirmation email
-        yield (0, bookingMail_1.bookingMail)(email);
+        yield (0, bookingMail_1.bookingMail)(email, fullname);
         // Email content
         const subject = "New Booking For Enterprise Internet Plan Booking";
         const htmlContent = `
@@ -94,11 +94,9 @@ const enterpriseBooking = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
             </div>
         `;
-        yield (0, emailSample_1.sendEmailWithRetry)("noc@linkorgnet.com", subject, htmlContent, 3);
-        res.status(201).json({
-            message: "New enterprise booking form added successfully, and email sent.",
-            newInboxEntry,
-        });
+        const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
+        yield Promise.all(recipients.map((recipient) => (0, emailLogic_1.sendEmailWithRetry)(recipient, subject, htmlContent, 3)));
+        res.status(201).json({ message: "New Booking request made successfully, and email sent.", addEnterpriseBooking });
     }
     catch (error) {
         console.error("Error during booking creation or email sending:", error);
