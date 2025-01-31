@@ -99,9 +99,10 @@ export const retailBooking = async (req: Request, res: Response): Promise<void> 
                     <tr><td style="font-weight: bold;">Total Amount:</td><td>${totalAmount.toFixed(2)}</td></tr>
                 </table>
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
-                     <p style="margin-top: 20px;">You can send an email directly to the Customer @ ${email} where necessary </p>
-            </div>
-        `;
+                   <p style="margin-top: 20px;">You can send an email directly to the Customer via <b><span> <a href="mailto:${email}">${email}</a></span></b> where necessary.</p>
+           
+                   </div>
+        `; 
 
         const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
         await Promise.all(

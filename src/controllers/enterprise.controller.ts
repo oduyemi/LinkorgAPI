@@ -99,7 +99,8 @@ export const enterpriseBooking = async (req: Request, res: Response): Promise<vo
                     <tr><td style="font-weight: bold;">Additional Note:</td><td>${note}</td></tr>
                 </table>
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
-                 <p style="margin-top: 20px;">You can send an email directly to the Customer @ ${email} where necessary </p>
+                   <p style="margin-top: 20px;">You can send an email directly to the Customer via <b><span> <a href="mailto:${email}">${email}</a></span></b> where necessary.</p>
+           
             </div>
         `;
 
