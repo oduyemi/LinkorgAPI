@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import Enquiry, { IEnquiry } from "../models/enquiry.model";
 import Inbox from "../models/inbox.model"; 
 import { enquiryMail } from "../helper/enquiryMail";
-import { sendEmailWithRetry } from "../helper/emailSample";
+import { sendEmailWithRetry } from "../helper/emailLogic";
 
 
 import dotenv from "dotenv";
@@ -35,62 +35,10 @@ export const getEnquiryById = async (req: Request, res: Response): Promise<void>
 };
 
 
-//     try {
-//         const { fname, lname, email, company, address, phone, state, topic, message } = req.body;
-//         if (![fname, lname, email, company, address, phone, state, topic, message].every(field => field)) {
-//             res.status(400).json({ message: "All fields are required" });
-//             return;
-//         }
-
-//         const newEnquiryEntry = new Enquiry({ fname, lname, email, company, address, phone, state, topic, message });
-//         await newEnquiryEntry.save();
-//         const newInboxEntry: InboxDocument = new Inbox({
-//             formType: "Enquiry",
-//             senderName: `${fname} ${lname}`,
-//             senderEmail: email,
-//             subject: topic,
-//             message,
-//         });
-//         await newInboxEntry.save();
-//         await enquiryMail(email);
-        
-
-//         // Email Notification
-//         const mailOptions = {
-//             from: `"LinkOrg Enquiries" <${process.env.SMTP_USERNAME}>`,
-//             to: "nok@linkorgnet.com",
-//             cc: "hello@linkorgnet.com",
-//             subject: `New Enquiry Received${topic ? `: ${topic}` : ""}`,
-//             html: `
-//                 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-//                     <h2 style="color: #2c3e50;">New Enquiry Form Submission</h2>
-//                     <p>A new enquiry form has been submitted with the following details:</p>
-//                     <table style="width: 100%; border-collapse: collapse;">
-//                         <tr><td style="font-weight: bold;">First Name:</td><td>${fname}</td></tr>
-//                         <tr><td style="font-weight: bold;">Last Name:</td><td>${lname}</td></tr>
-//                         <tr><td style="font-weight: bold;">Email:</td><td>${email}</td></tr>
-//                         <tr><td style="font-weight: bold;">Company:</td><td>${company}</td></tr>
-//                         <tr><td style="font-weight: bold;">Phone:</td><td>${phone}</td></tr>
-//                         <tr><td style="font-weight: bold;">Address:</td><td>${address}</td></tr>
-//                         <tr><td style="font-weight: bold;">State:</td><td>${state}</td></tr>
-//                         <tr><td style="font-weight: bold;">Topic:</td><td>${topic}</td></tr>
-//                         <tr><td style="font-weight: bold;">Message:</td><td>${message}</td></tr>
-//                     </table>
-//                     <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
-//                 </div>
-//             `,
-//         };
-
-//         await sendEmail(mailOptions);
-//         res.status(201).json({ message: "New enquiry form added successfully, and email sent." });
-//     } catch (error) {
-//         console.error("Error during enquiry data creation or email sending:", error);
-//         res.status(500).json({ message: "Error creating enquiry data or sending email" });
-//     }
-// };
 export const newEnquiry = async (req: Request, res: Response): Promise<void> => {
     try {
         const { fname, lname, email, company, address, phone, state, topic, message } = req.body;
+        const name = fname + " " + lname;
 
         if (![fname, lname, email, company, address, phone, state, topic, message].every(Boolean)) {
             res.status(400).json({ message: "All fields are required" });
@@ -109,9 +57,9 @@ export const newEnquiry = async (req: Request, res: Response): Promise<void> => 
         });
         await newInboxEntry.save();
 
-        await enquiryMail(email);
+        await enquiryMail(email, name);
 
-        const subjectForAdmin = `New Enquiry Received${topic ? `: ${topic}` : ""}`;
+        const subject = `New Enquiry Received${topic ? `: ${topic}` : ""}`;
         const htmlContent = `
             <div style="font-family: Arial, sans-serif; line-height: 1.6;">
                 <h2 style="color: #2c3e50;">New Enquiry Form Submission</h2>
@@ -128,9 +76,17 @@ export const newEnquiry = async (req: Request, res: Response): Promise<void> => 
                     <tr><td style="font-weight: bold;">Message:</td><td>${message}</td></tr>
                 </table>
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
+                   <p style="margin-top: 20px;">You can send an email directly to the Customer via <b><span> <a href="mailto:${email}">${email}</a></span></b> where necessary.</p>
+           
             </div>`;
 
-        await sendEmailWithRetry("nok@linkorgnet.com", subjectForAdmin, htmlContent, 3);
+           // Send email to both addresses
+           const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
+           await Promise.all(
+               recipients.map((recipient) =>
+                   sendEmailWithRetry(recipient, subject, htmlContent, 3)
+               )
+           );
 
         res.status(201).json({ message: "New enquiry form added successfully, and email sent.", newEnquiryEntry });
     } catch (error) {

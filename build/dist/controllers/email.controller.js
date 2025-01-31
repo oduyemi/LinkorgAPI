@@ -13,19 +13,50 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEmail = exports.getSentEmailById = exports.getAllSentEmails = exports.getInboxEntryById = exports.getAllInboxEntries = void 0;
-const transporter_1 = require("../utils/transporter");
-const validator_1 = __importDefault(require("validator"));
-const dotenv_1 = __importDefault(require("dotenv"));
+const oauthController_1 = require("./oauthController");
+const emailLogic_1 = require("../helper/emailLogic");
 const email_model_1 = __importDefault(require("../models/email.model"));
-const inbox_model_1 = __importDefault(require("../models/inbox.model"));
+const axios_1 = __importDefault(require("axios"));
+const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const getAllInboxEntries = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const inboxEntries = yield inbox_model_1.default.find();
-        res.status(200).json(inboxEntries);
+        const accessToken = yield (0, oauthController_1.getAccessToken)();
+        const response = yield axios_1.default.get(`https://graph.microsoft.com/v1.0/users/${process.env.EMAIL_USERNAME}/mailFolders/Inbox/messages`, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        const inboxEntries = response.data.value;
+        const result = [];
+        for (const entry of inboxEntries) {
+            const { id, from, subject, receivedDateTime, bodyPreview } = entry;
+            const emailRecord = new email_model_1.default({
+                id,
+                email: from.emailAddress.address,
+                subject,
+                name: from.emailAddress.name,
+                message: bodyPreview,
+                sentAt: new Date(receivedDateTime),
+                folder: 'Inbox',
+            });
+            yield emailRecord.save();
+            result.push({
+                id,
+                from: {
+                    email: from.emailAddress.address,
+                    name: from.emailAddress.name,
+                },
+                subject,
+                receivedDateTime,
+                bodyPreview,
+            });
+        }
+        res.status(200).json({ msg: "All inbox successfully fetched", result });
     }
     catch (error) {
-        console.error("Error fetching inbox entries:", error);
+        console.error("Error fetching inbox entries:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
         res.status(500).json({ message: "Error fetching inbox entries" });
     }
 });
@@ -33,27 +64,41 @@ exports.getAllInboxEntries = getAllInboxEntries;
 const getInboxEntryById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const inboxEntry = yield inbox_model_1.default.findById(id);
-        if (!inboxEntry) {
-            res.status(404).json({ message: "Inbox entry not found" });
-            return;
-        }
-        res.status(200).json(inboxEntry);
+        const accessToken = yield (0, oauthController_1.getAccessToken)();
+        const response = yield axios_1.default.get(`https://graph.microsoft.com/v1.0/users/${process.env.EMAIL_USERNAME}/messages/${id}`, // Endpoint for specific email
+        {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        const { from, subject, receivedDateTime, bodyPreview } = response.data;
+        res.status(200).json({
+            msg: "Inbox successfully fetched",
+            id,
+            from: from.emailAddress,
+            subject,
+            receivedDateTime,
+            bodyPreview,
+        });
     }
     catch (error) {
-        console.error("Error fetching inbox entry:", error);
-        res.status(500).json({ message: "Error fetching inbox entry" });
+        console.error("Error fetching inbox entry by ID:", error.message);
+        res.status(500).json({ message: "Error fetching inbox entry by ID" });
     }
 });
 exports.getInboxEntryById = getInboxEntryById;
 const getAllSentEmails = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const emails = yield email_model_1.default.find().sort({ sentAt: -1 });
-        res.status(200).json(emails);
+        const sentEmails = yield email_model_1.default.find().exec();
+        if (sentEmails.length === 0) {
+            res.status(404).json({ message: "No sent emails found" });
+            return;
+        }
+        res.status(200).json({ msg: "All Sent emails successfully fetched", sentEmails });
     }
     catch (error) {
-        console.error("Error fetching emails:", error);
-        res.status(500).json({ message: "Failed to fetch emails" });
+        console.error("Error fetching sent emails from the database:", error.message);
+        res.status(500).json({ message: "Failed to fetch sent emails. Please try again later." });
     }
 });
 exports.getAllSentEmails = getAllSentEmails;
@@ -65,7 +110,7 @@ const getSentEmailById = (req, res) => __awaiter(void 0, void 0, void 0, functio
             res.status(404).json({ message: "Email not found" });
             return;
         }
-        res.status(200).json(email);
+        res.status(200).json({ msg: "Sent emails successfully fetched", email });
     }
     catch (error) {
         console.error("Error fetching email by ID:", error);
@@ -75,48 +120,31 @@ const getSentEmailById = (req, res) => __awaiter(void 0, void 0, void 0, functio
 exports.getSentEmailById = getSentEmailById;
 const sendEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, subject, name = "LinkOrg Networks LTD", message } = req.body;
-        if (![email, subject, name, message].every(field => field)) {
-            res.status(400).json({ message: "All fields (email, subject, name, message) are required" });
+        const { email, subject, name, message } = req.body;
+        if (![email, subject, message].every((field) => !!field)) {
+            res.status(400).json({ message: "All fields (email, subject, message) are required" });
+            console.log("Request Body:", req.body);
             return;
         }
-        if (!validator_1.default.isEmail(email)) {
-            res.status(400).json({ message: "Invalid email format" });
+        if (typeof name !== 'string' || typeof email !== 'string' || typeof subject !== 'string' || typeof message !== 'string') {
+            res.status(400).json({ message: "Invalid data types. Fields must be strings." });
+            console.log("Request Body:", req.body);
             return;
         }
-        if (message.trim().length === 0) {
-            res.status(400).json({ message: "Message cannot be empty" });
-            return;
-        }
-        if (!process.env.SMTP_USERNAME || !process.env.SMTP_PWD) {
-            res.status(500).json({ message: "SMTP credentials are not set correctly" });
-            return;
-        }
-        const mailOptions = {
-            from: `"LinkOrg Admin" <${process.env.SMTP_USERNAME}>`,
-            to: email,
-            subject,
-            html: `
-                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                    <h2 style="color: #2c3e50;">Hello ${name},</h2>
-                    <p>${message}</p>
-                    <p>Best regards,<br>LinkOrg Team</p>
-                </div>
-            `,
-        };
-        yield transporter_1.transporter.sendMail(mailOptions);
-        const newEmail = new email_model_1.default({
-            email,
-            subject,
-            name,
-            message,
-            sentAt: new Date(),
-        });
-        yield newEmail.save();
-        res.status(200).json({ message: "Email sent and saved successfully!" });
+        const htmlContent = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2 style="color: #2c3e50;">Hello ${name},</h2>
+        <p>${message}</p>
+        <p>Best regards,<br>LinkOrg NetworksTeam</p>
+      </div>
+    `;
+        yield (0, emailLogic_1.sendEmailWithRetry)(email, subject, htmlContent);
+        const emailRecord = new email_model_1.default({ email, subject, name, message, folder: 'Sent', });
+        yield emailRecord.save();
+        res.status(200).json({ message: "Email sent and logged successfully!", emailRecord });
     }
     catch (error) {
-        console.error("Error sending email:", error.stack || error);
+        console.error("Error sending email:", error.message);
         res.status(500).json({ message: "Failed to send email. Please try again later." });
     }
 });

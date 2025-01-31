@@ -27,6 +27,12 @@ export const sendEmailWithRetry = async (
               emailAddress: { address: recipient },
             },
           ],
+          from: {
+            emailAddress: {
+              address: process.env.EMAIL_USERNAME, 
+              name: 'LinkOrg Networks', 
+            },
+          },
         },
         saveToSentItems: 'false',
       };
