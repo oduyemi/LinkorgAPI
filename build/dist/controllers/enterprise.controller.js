@@ -1,60 +1,57 @@
-import { Request, Response } from "express";
-import Enterprise, { IEnterprise } from "../models/enterprise.model";
-import Inbox from "../models/inbox.model";
-import { bookingMail } from "../helper/bookingMail";
-import dotenv from "dotenv";
-import { sendEmailWithRetry } from "../helper/emailLogic";
-
-
-dotenv.config();
-
-
-export const getAllEnteprisePlans = async (req: Request, res: Response): Promise<void> => {
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.enterpriseBooking = exports.getEnterprisePlanById = exports.getAllEnteprisePlans = void 0;
+const enterprise_model_1 = __importDefault(require("../models/enterprise.model"));
+const inbox_model_1 = __importDefault(require("../models/inbox.model"));
+const bookingMail_1 = require("../helper/bookingMail");
+const dotenv_1 = __importDefault(require("dotenv"));
+const emailLogic_1 = require("../helper/emailLogic");
+dotenv_1.default.config();
+const getAllEnteprisePlans = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const entPlans: IEnterprise[] = await Enterprise.find();
+        const entPlans = yield enterprise_model_1.default.find();
         res.status(200).json(entPlans);
-    } catch (error:any) {
+    }
+    catch (error) {
         res.status(500).json({ message: "Error retrieving internet enterprisr plan data", error: error.message });
     }
-};
-
-
-export const getEnterprisePlanById = async (req: Request, res: Response): Promise<void> => {
+});
+exports.getAllEnteprisePlans = getAllEnteprisePlans;
+const getEnterprisePlanById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-
     try {
-        const entplan: IEnterprise | null = await Enterprise.findById(id);
+        const entplan = yield enterprise_model_1.default.findById(id);
         if (!entplan) {
             res.status(404).json({ message: "Internet enterprise plan data not found" });
             return;
         }
         res.status(200).json(entplan);
-    } catch (error:any) {
+    }
+    catch (error) {
         res.status(500).json({ message: "Error retrieving internet enterprise plan data", error: error.message });
     }
-};
-
-
-export const enterpriseBooking = async (req: Request, res: Response): Promise<void> => {
+});
+exports.getEnterprisePlanById = getEnterprisePlanById;
+const enterpriseBooking = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const {
-            fullname,
-            company,
-            email,
-            phone,
-            contact,
-            contact_job,
-            address,
-            plan,
-            how,
-            note,
-        } = req.body;
+        const { fullname, company, email, phone, contact, contact_job, address, plan, how, note, } = req.body;
         if (![fullname, company, email, phone, contact, contact_job, address, plan, how].every(Boolean)) {
             res.status(400).json({ message: "All required fields must be filled" });
             return;
         }
-
-        const addEnterpriseBooking = new Enterprise({
+        const addEnterpriseBooking = new enterprise_model_1.default({
             fullname,
             company,
             email,
@@ -66,20 +63,16 @@ export const enterpriseBooking = async (req: Request, res: Response): Promise<vo
             how,
             note,
         });
-
-        await addEnterpriseBooking.save();
-        const newInboxEntry = new Inbox({
+        yield addEnterpriseBooking.save();
+        const newInboxEntry = new inbox_model_1.default({
             formType: "Booking",
             senderName: fullname,
             senderEmail: email,
             message: `Internet Plan: ${plan}, Additional Note: ${note}`,
         });
-
-        await newInboxEntry.save();
-
+        yield newInboxEntry.save();
         // Send booking confirmation email
-        await bookingMail(email, fullname);
-
+        yield (0, bookingMail_1.bookingMail)(email, fullname);
         // Email content
         const subject = "New Booking For Enterprise Internet Plan Booking";
         const htmlContent = `
@@ -99,22 +92,17 @@ export const enterpriseBooking = async (req: Request, res: Response): Promise<vo
                     <tr><td style="font-weight: bold;">Additional Note:</td><td>${note}</td></tr>
                 </table>
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
-                   <p style="margin-top: 20px;">You can send an email directly to the Customer via <b><span> <a href="mailto:${email}">${email}</a></span></b> where necessary.</p>
-           
             </div>
         `;
-
         const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
-           await Promise.all(
-               recipients.map((recipient) =>
-                   sendEmailWithRetry(recipient, subject, htmlContent, 3)
-               )
-           );
-           res.status(201).json({ message: "New Booking request made successfully, and email sent.", addEnterpriseBooking });
-    } catch (error) {
+        yield Promise.all(recipients.map((recipient) => (0, emailLogic_1.sendEmailWithRetry)(recipient, subject, htmlContent, 3)));
+        res.status(201).json({ message: "New Booking request made successfully, and email sent.", addEnterpriseBooking });
+    }
+    catch (error) {
         console.error("Error during booking creation or email sending:", error);
         res.status(500).json({
             message: "Error creating booking or sending email",
         });
     }
-};
+});
+exports.enterpriseBooking = enterpriseBooking;

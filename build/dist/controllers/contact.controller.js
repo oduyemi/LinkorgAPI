@@ -14,9 +14,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.newContact = exports.getContactById = exports.getAllContacts = void 0;
 const contact_model_1 = __importDefault(require("../models/contact.model"));
-const email_1 = require("../utils/email");
 const inbox_model_1 = __importDefault(require("../models/inbox.model"));
+const contactMail_1 = require("../helper/contactMail");
 const dotenv_1 = __importDefault(require("dotenv"));
+const emailLogic_1 = require("../helper/emailLogic");
 dotenv_1.default.config();
 const getAllContacts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -46,7 +47,7 @@ exports.getContactById = getContactById;
 const newContact = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, email, phone, subject, message } = req.body;
-        if (![name, email, phone, message].every(field => field)) {
+        if (![name, email, phone, message].every(Boolean)) {
             res.status(400).json({ message: "All fields are required" });
             return;
         }
@@ -60,29 +61,24 @@ const newContact = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             message,
         });
         yield newInboxEntry.save();
-        // Email Notification
-        const mailOptions = {
-            from: `"LinkOrg Contact Form" <${process.env.SMTP_USERNAME}>`,
-            to: "nok@linkorgnet.com",
-            cc: "hello@linkorgnet.com",
-            subject: `New Contact Form Submission${subject ? `: ${subject}` : ""}`,
-            html: `
-                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                    <h2 style="color: #2c3e50;">New Contact Form Submission</h2>
-                    <p>A new contact form has been submitted with the following details:</p>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr><td style="font-weight: bold;">Name:</td><td>${name}</td></tr>
-                        <tr><td style="font-weight: bold;">Email:</td><td>${email}</td></tr>
-                        <tr><td style="font-weight: bold;">Phone:</td><td>${phone}</td></tr>
-                        ${subject ? `<tr><td style="font-weight: bold;">Subject:</td><td>${subject}</td></tr>` : ""}
-                        <tr><td style="font-weight: bold;">Message:</td><td>${message}</td></tr>
-                    </table>
-                    <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
-                </div>
-            `,
-        };
-        yield (0, email_1.sendEmail)(mailOptions);
-        res.status(201).json({ message: "New contact form added successfully, and email sent." });
+        yield (0, contactMail_1.contactMail)(email, name);
+        const Emailsubject = "New Contact Form Submission";
+        const htmlContent = `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h2 style="color: #2c3e50;">New Contact Form Submission</h2>
+                <p>A new contact form has been submitted with the following details:</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr><td style="font-weight: bold;">Name:</td><td>${name}</td></tr>
+                    <tr><td style="font-weight: bold;">Email:</td><td>${email}</td></tr>
+                    <tr><td style="font-weight: bold;">Phone:</td><td>${phone}</td></tr>
+                    ${subject ? `<tr><td style="font-weight: bold;">Subject:</td><td>${subject}</td></tr>` : ""}
+                    <tr><td style="font-weight: bold;">Message:</td><td>${message}</td></tr>
+                </table>
+                <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
+            </div>`;
+        const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
+        yield Promise.all(recipients.map((recipient) => (0, emailLogic_1.sendEmailWithRetry)(recipient, Emailsubject, htmlContent, 3)));
+        res.status(201).json({ message: "New contact form added successfully, and email sent.", newContactEntry });
     }
     catch (error) {
         console.error("Error during contact data creation or email sending:", error);

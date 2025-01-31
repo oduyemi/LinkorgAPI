@@ -3,7 +3,7 @@ import Booking, { IBooking } from "../models/booking.model";
 import Inbox from "../models/inbox.model";
 import { bookingMail } from "../helper/bookingMail";
 import dotenv from "dotenv";
-import { sendEmailWithRetry } from "../helper/emailSample";
+import { sendEmailWithRetry } from "../helper/emailLogic";
 
 
 dotenv.config();
@@ -12,7 +12,7 @@ dotenv.config();
 export const getAllBookings = async (req: Request, res: Response): Promise<void> => {
     try {
         const bookings: IBooking[] = await Booking.find();
-        res.status(200).json(bookings);
+        res.status(200).json({message: "All bookings successfully retrived", bookings});
     } catch (error:any) {
         res.status(500).json({ message: "Error retrieving booking data", error: error.message });
     }
@@ -27,7 +27,7 @@ export const getBookingById = async (req: Request, res: Response): Promise<void>
             res.status(404).json({ message: "Booking data not found" });
             return;
         }
-        res.status(200).json(booking);
+        res.status(200).json({message: "booking successfully retrived", booking});
     } catch (error:any) {
         res.status(500).json({ message: "Error retrieving booking data", error: error.message });
     }
@@ -50,18 +50,7 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
         } = req.body;
 
         if (
-            ![
-                name,
-                company,
-                email,
-                address,
-                service,
-                how,
-                phone,
-                state,
-                lga,
-                specialRequest,
-            ].every(Boolean)
+            ![name, company, email, address, service, how, phone, state, lga, specialRequest].every(Boolean)
         ) {
             res.status(400).json({ message: "All fields are required" });
             return;
@@ -92,8 +81,9 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
 
         await newInboxEntry.save();
 
-        await bookingMail(email);
+        await bookingMail(email, name);
 
+        // Email content
         const subject = "New Booking Form Submission";
         const htmlContent = `
             <div style="font-family: Arial, sans-serif; line-height: 1.6;">
@@ -112,23 +102,28 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
                     <tr><td style="font-weight: bold;">Special Request:</td><td>${specialRequest}</td></tr>
                 </table>
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
+                    <p style="margin-top: 20px;">You can send an email directly to the Customer via <b><span> <a href="mailto:${email}">${email}</a></span></b> where necessary.</p>
+           
             </div>
         `;
 
-        await sendEmailWithRetry(
-            "noc@linkorgnet.com",
-            subject,
-            htmlContent,
-            3
+        // Send email to both addresses
+        const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
+        await Promise.all(
+            recipients.map((recipient) =>
+                sendEmailWithRetry(recipient, subject, htmlContent, 3)
+            )
         );
 
         res.status(201).json({
-            message: "New booking form added successfully, and email sent.", newInboxEntry
+            message: "New booking form added successfully, and emails sent.",
+            newInboxEntry,
         });
     } catch (error) {
         console.error("Error during booking creation or email sending:", error);
         res.status(500).json({
-            message: "Error creating booking or sending email",
+            message: "Error creating booking or sending emails",
         });
     }
 };
+

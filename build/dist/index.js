@@ -18,15 +18,24 @@ const booking_route_1 = __importDefault(require("./routes/booking.route"));
 const contact_route_1 = __importDefault(require("./routes/contact.route"));
 const enquiry_route_1 = __importDefault(require("./routes/enquiry.route"));
 const email_route_1 = __importDefault(require("./routes/email.route"));
+const oauthRoutes_1 = __importDefault(require("./routes/oauthRoutes"));
+const retail_route_1 = __importDefault(require("./routes/retail.route"));
+const enterprise_route_1 = __importDefault(require("./routes/enterprise.route"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const corsOptions = {
     origin: ["http://localhost:3000", "https://linkorgnet.com.ng", "https://www.linkorgnet.com.ng"],
     credentials: true,
 };
+app.use(express_1.default.json());
 app.use((0, cors_1.default)(corsOptions));
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+    console.log("Headers:", req.headers);
+    console.log("Request Body:", req.body);
+    next();
+});
 // Session configuration
 app.use((0, express_session_1.default)({
     secret: process.env.SECRET_KEY,
@@ -51,6 +60,9 @@ app.use("/api/v1/bookings", booking_route_1.default);
 app.use("/api/v1/contacts", contact_route_1.default);
 app.use("/api/v1/enquiries", enquiry_route_1.default);
 app.use("/api/v1/email", email_route_1.default);
+app.use('/api/v1/oauth', oauthRoutes_1.default);
+app.use('/api/v1/retail', retail_route_1.default);
+app.use('/api/v1/enterprise', enterprise_route_1.default);
 app.all("*", (req, res, next) => {
     next(new appError_1.default(`The route ${req.originalUrl} with the ${req.method} method does not exist on this server! 💨`, 404));
 });

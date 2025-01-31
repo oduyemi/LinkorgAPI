@@ -14,8 +14,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.newEnquiry = exports.getEnquiryById = exports.getAllEnquiries = void 0;
 const enquiry_model_1 = __importDefault(require("../models/enquiry.model"));
-const email_1 = require("../utils/email");
 const inbox_model_1 = __importDefault(require("../models/inbox.model"));
+const enquiryMail_1 = require("../helper/enquiryMail");
+const emailLogic_1 = require("../helper/emailLogic");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const getAllEnquiries = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -46,7 +47,8 @@ exports.getEnquiryById = getEnquiryById;
 const newEnquiry = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { fname, lname, email, company, address, phone, state, topic, message } = req.body;
-        if (![fname, lname, email, company, address, phone, state, topic, message].every(field => field)) {
+        const name = fname + " " + lname;
+        if (![fname, lname, email, company, address, phone, state, topic, message].every(Boolean)) {
             res.status(400).json({ message: "All fields are required" });
             return;
         }
@@ -60,33 +62,29 @@ const newEnquiry = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             message,
         });
         yield newInboxEntry.save();
-        // Email Notification
-        const mailOptions = {
-            from: `"LinkOrg Enquiries" <${process.env.SMTP_USERNAME}>`,
-            to: "nok@linkorgnet.com",
-            cc: "hello@linkorgnet.com",
-            subject: `New Enquiry Received${topic ? `: ${topic}` : ""}`,
-            html: `
-                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                    <h2 style="color: #2c3e50;">New Enquiry Form Submission</h2>
-                    <p>A new enquiry form has been submitted with the following details:</p>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr><td style="font-weight: bold;">First Name:</td><td>${fname}</td></tr>
-                        <tr><td style="font-weight: bold;">Last Name:</td><td>${lname}</td></tr>
-                        <tr><td style="font-weight: bold;">Email:</td><td>${email}</td></tr>
-                        <tr><td style="font-weight: bold;">Company:</td><td>${company}</td></tr>
-                        <tr><td style="font-weight: bold;">Phone:</td><td>${phone}</td></tr>
-                        <tr><td style="font-weight: bold;">Address:</td><td>${address}</td></tr>
-                        <tr><td style="font-weight: bold;">State:</td><td>${state}</td></tr>
-                        <tr><td style="font-weight: bold;">Topic:</td><td>${topic}</td></tr>
-                        <tr><td style="font-weight: bold;">Message:</td><td>${message}</td></tr>
-                    </table>
-                    <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
-                </div>
-            `,
-        };
-        yield (0, email_1.sendEmail)(mailOptions);
-        res.status(201).json({ message: "New enquiry form added successfully, and email sent." });
+        yield (0, enquiryMail_1.enquiryMail)(email, name);
+        const subject = `New Enquiry Received${topic ? `: ${topic}` : ""}`;
+        const htmlContent = `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h2 style="color: #2c3e50;">New Enquiry Form Submission</h2>
+                <p>A new enquiry form has been submitted with the following details:</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr><td style="font-weight: bold;">First Name:</td><td>${fname}</td></tr>
+                    <tr><td style="font-weight: bold;">Last Name:</td><td>${lname}</td></tr>
+                    <tr><td style="font-weight: bold;">Email:</td><td>${email}</td></tr>
+                    <tr><td style="font-weight: bold;">Company:</td><td>${company}</td></tr>
+                    <tr><td style="font-weight: bold;">Phone:</td><td>${phone}</td></tr>
+                    <tr><td style="font-weight: bold;">Address:</td><td>${address}</td></tr>
+                    <tr><td style="font-weight: bold;">State:</td><td>${state}</td></tr>
+                    <tr><td style="font-weight: bold;">Topic:</td><td>${topic}</td></tr>
+                    <tr><td style="font-weight: bold;">Message:</td><td>${message}</td></tr>
+                </table>
+                <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
+            </div>`;
+        // Send email to both addresses
+        const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
+        yield Promise.all(recipients.map((recipient) => (0, emailLogic_1.sendEmailWithRetry)(recipient, subject, htmlContent, 3)));
+        res.status(201).json({ message: "New enquiry form added successfully, and email sent.", newEnquiryEntry });
     }
     catch (error) {
         console.error("Error during enquiry data creation or email sending:", error);

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { getAccessToken } from "./oauthController";
-import { sendEmailWithRetry } from '../helper/emailSample'; 
+import { sendEmailWithRetry } from '../helper/emailLogic'; 
 import Email, {IEmail} from '../models/email.model'; 
 import axios from "axios";
 import dotenv from "dotenv";
@@ -14,7 +14,7 @@ export const getAllInboxEntries = async (req: Request, res: Response): Promise<v
 
 
     const response = await axios.get(
-      `https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages`,
+      `https://graph.microsoft.com/v1.0/users/${process.env.EMAIL_USERNAME}/mailFolders/Inbox/messages`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -24,23 +24,37 @@ export const getAllInboxEntries = async (req: Request, res: Response): Promise<v
 
     const inboxEntries = response.data.value;
 
+    const result = []; 
+    
     for (const entry of inboxEntries) {
-      const { from, subject, receivedDateTime, bodyPreview } = entry;
-
+      const { id, from, subject, receivedDateTime, bodyPreview } = entry;
+    
       const emailRecord = new Email({
-            email: from.emailAddress.address,
-            subject,
-            name: from.emailAddress.name,
-            message: bodyPreview, 
-            sentAt: new Date(receivedDateTime),
-            folder: 'Inbox',
+        id,
+        email: from.emailAddress.address,
+        subject,
+        name: from.emailAddress.name,
+        message: bodyPreview,
+        sentAt: new Date(receivedDateTime),
+        folder: 'Inbox',
       });
-
+    
       await emailRecord.save();
+    
+      result.push({
+        id,
+        from: {
+          email: from.emailAddress.address,
+          name: from.emailAddress.name,
+        },
+        subject,
+        receivedDateTime,
+        bodyPreview,
+      });
     }
-
-
-    res.status(200).json(inboxEntries);
+    
+    res.status(200).json({msg: "All inbox successfully fetched", result});
+    
   } catch (error: any) {
     console.error("Error fetching inbox entries:", error.response?.data || error.message);
     
@@ -50,44 +64,35 @@ export const getAllInboxEntries = async (req: Request, res: Response): Promise<v
 
 
 export const getInboxEntryById = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const { id } = req.params;
-        const accessToken = await getAccessToken();
+  try {
+      const { id } = req.params; 
+      const accessToken = await getAccessToken();
 
-        const response = await axios.get(
-            `https://graph.microsoft.com/v1.0/me/messages/${id}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
-            }
-        );
+      const response = await axios.get(
+          `https://graph.microsoft.com/v1.0/users/${process.env.EMAIL_USERNAME}/messages/${id}`, // Endpoint for specific email
+          {
+              headers: {
+                  Authorization: `Bearer ${accessToken}`,
+              },
+          }
+      );
 
-        res.status(200).json(response.data);
-    } catch (error: any) {
-        console.error("Error fetching inbox entry:", error.message);
-        res.status(500).json({ message: "Error fetching inbox entry" });
-    }
+      const { from, subject, receivedDateTime, bodyPreview } = response.data;
+
+      res.status(200).json({
+        msg: "Inbox successfully fetched",
+          id,
+          from: from.emailAddress,
+          subject,
+          receivedDateTime,
+          bodyPreview,
+      });
+  } catch (error: any) {
+      console.error("Error fetching inbox entry by ID:", error.message);
+      res.status(500).json({ message: "Error fetching inbox entry by ID" });
+  }
 };
 
-//     try {
-//         const accessToken = await getAccessToken();
-
-//         const response = await axios.get(
-//             `https://graph.microsoft.com/v1.0/me/mailFolders/SentItems/messages`,
-//             {
-//                 headers: {
-//                     Authorization: `Bearer ${accessToken}`,
-//                 },
-//             }
-//         );
-
-//         res.status(200).json(response.data.value);
-//     } catch (error: any) {
-//         console.error("Error fetching sent emails:", error.message);
-//         res.status(500).json({ message: "Failed to fetch sent emails" });
-//     }
-// };
 
 export const getAllSentEmails = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -98,7 +103,7 @@ export const getAllSentEmails = async (req: Request, res: Response): Promise<voi
         return;
       }
 
-      res.status(200).json(sentEmails);
+      res.status(200).json({msg: "All Sent emails successfully fetched", sentEmails});
     } catch (error: any) {
       console.error("Error fetching sent emails from the database:", error.message);
       
@@ -116,7 +121,7 @@ export const getAllSentEmails = async (req: Request, res: Response): Promise<voi
             return;
         }
 
-        res.status(200).json(email);
+        res.status(200).json({msg: "Sent emails successfully fetched", email});
     } catch (error) {
         console.error("Error fetching email by ID:", error);
         res.status(500).json({ message: "Failed to fetch email" });
@@ -127,7 +132,7 @@ export const getAllSentEmails = async (req: Request, res: Response): Promise<voi
 
 export const sendEmail = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, subject, name = "LinkOrg Networks LTD", message } = req.body;
+    const { email, subject, name, message } = req.body;
 
     if (![email, subject, message].every((field) => !!field)) {
       res.status(400).json({ message: "All fields (email, subject, message) are required" });

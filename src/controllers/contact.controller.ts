@@ -3,7 +3,7 @@ import Contact, { IContact } from "../models/contact.model";
 import Inbox from "../models/inbox.model";
 import { contactMail } from "../helper/contactMail";
 import dotenv from "dotenv";
-import { sendEmailWithRetry } from "../helper/emailSample";
+import { sendEmailWithRetry } from "../helper/emailLogic";
 
 
 dotenv.config();
@@ -58,9 +58,9 @@ export const newContact = async (req: Request, res: Response): Promise<void> => 
         });
         await newInboxEntry.save();
 
-        await contactMail(email);
+        await contactMail(email, name);
 
-        const subjectForAdmin = `New Contact Form Submission${subject ? `: ${subject}` : ""}`;
+        const Emailsubject = "New Contact Form Submission";
         const htmlContent = `
             <div style="font-family: Arial, sans-serif; line-height: 1.6;">
                 <h2 style="color: #2c3e50;">New Contact Form Submission</h2>
@@ -73,9 +73,16 @@ export const newContact = async (req: Request, res: Response): Promise<void> => 
                     <tr><td style="font-weight: bold;">Message:</td><td>${message}</td></tr>
                 </table>
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
+                   <p style="margin-top: 20px;">You can send an email directly to the Customer via <b><span> <a href="mailto:${email}">${email}</a></span></b> where necessary.</p>
+           
             </div>`;
 
-        await sendEmailWithRetry("noc@linkorgnet.com", subjectForAdmin, htmlContent, 3);
+            const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
+            await Promise.all(
+                recipients.map((recipient) =>
+                    sendEmailWithRetry(recipient, Emailsubject, htmlContent, 3)
+                )
+            );
 
         res.status(201).json({ message: "New contact form added successfully, and email sent.", newContactEntry });
     } catch (error) {
