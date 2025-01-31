@@ -18,7 +18,6 @@ export const getAllBookings = async (req: Request, res: Response): Promise<void>
     }
 };
 
-
 export const getBookingById = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
 
@@ -68,6 +67,7 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
             state,
             lga,
             specialRequest,
+            status: "pending",
         });
 
         await addBooking.save();

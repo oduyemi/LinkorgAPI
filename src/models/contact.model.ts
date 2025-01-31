@@ -7,6 +7,7 @@ export interface IContact extends Document {
   phone: string;
   subject: string;
   message: string;
+  status: string;
   createdAt: Date;
 }
 
@@ -39,6 +40,14 @@ const contactSchema: Schema = new mongoose.Schema({
     type: String,
     required: [true, "Message is required"],
   },
+
+  status: {
+    type: String,
+    enum: ["pending", "working", "resolved", "rejected"],
+    required: true,
+    default: "pending",
+  },
+  
   createdAt: {
     type: Date,
     default: Date.now,

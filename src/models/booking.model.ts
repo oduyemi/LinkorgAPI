@@ -12,6 +12,7 @@ export interface IBooking extends Document {
   state: string;
   lga: string;
   specialRequest: string;
+  status: string;
   createdAt: Date;
 }
 
@@ -64,14 +65,24 @@ const bookingSchema: Schema = new mongoose.Schema({
       "Sokoto", "Taraba", "Yobe", "Zamfara", "FCT"
     ],
   },
+
   lga: {
     type: String,
     required: true,
   },
+
   specialRequest: {
     type: String,
     required: true,
   },
+
+  status: {
+    type: String,
+    enum: ["pending", "working", "resolved", "rejected"],
+    required: true,
+    default: "pending",
+  },
+  
   createdAt: {
     type: Date,
     default: Date.now,
