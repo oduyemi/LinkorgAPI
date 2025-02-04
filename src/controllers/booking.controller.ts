@@ -4,6 +4,7 @@ import Inbox from "../models/inbox.model";
 import { bookingMail } from "../helper/bookingMail";
 import dotenv from "dotenv";
 import { sendEmailWithRetry } from "../helper/emailLogic";
+import BookingRequest from "../models/bookingRequest.model";
 
 
 dotenv.config();
@@ -32,6 +33,7 @@ export const getBookingById = async (req: Request, res: Response): Promise<void>
         res.status(500).json({ message: "Error retrieving booking data", error: error.message });
     }
 };
+
 
 
 export const newBooking = async (req: Request, res: Response): Promise<void> => {
@@ -71,6 +73,16 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
         });
 
         await addBooking.save();
+        const bookingRequest = new BookingRequest({
+            admin: null, // No admin assigned initially
+            customerName: addBooking._id, 
+            requestDate: new Date(),
+            time: "N/A",
+            guestCount: 1, 
+            status: "pending",
+        });
+
+        await bookingRequest.save();
 
         const newInboxEntry = new Inbox({
             formType: "Booking",
@@ -102,12 +114,10 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
                     <tr><td style="font-weight: bold;">Special Request:</td><td>${specialRequest}</td></tr>
                 </table>
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
-                    <p style="margin-top: 20px;">You can send an email directly to the Customer via <b><span> <a href="mailto:${email}">${email}</a></span></b> where necessary.</p>
-           
+                <p style="margin-top: 20px;">You can send an email directly to the Customer via <b><span> <a href="mailto:${email}">${email}</a></span></b> where necessary.</p>
             </div>
         `;
 
-        // Send email to both addresses
         const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
         await Promise.all(
             recipients.map((recipient) =>
@@ -118,6 +128,7 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
         res.status(201).json({
             message: "New booking form added successfully, and emails sent.",
             newInboxEntry,
+            bookingRequest, 
         });
     } catch (error) {
         console.error("Error during booking creation or email sending:", error);
@@ -126,4 +137,3 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
         });
     }
 };
-
