@@ -127,3 +127,70 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
     }
 };
 
+
+
+export const updateBookingStatus = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Access the bookingId from req.params
+    const { id } = req.params;
+    const { status } = req.body; // Status should be in the request body
+
+    // Ensure the status is provided
+    if (!status) {
+      res.status(400).json({ message: "Status is required" });
+      return;
+    }
+
+    // Find and update the booking status by ID
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      res.status(404).json({ message: "Booking not found" });
+      return;
+    }
+
+    // Update the booking status
+    booking.status = status;
+    await booking.save();
+
+    res.status(200).json({
+      message: "Booking status updated successfully",
+      updatedBooking: booking,
+    });
+  } catch (error) {
+    console.error("Error updating booking status:", error);
+    res.status(500).json({ message: "Error updating booking status" });
+  }
+};
+
+
+
+
+export const deleteBooking = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { bookingId } = req.params; // Booking ID from URL params
+
+        if (!bookingId) {
+            res.status(400).json({ message: "Booking ID is required" });
+            return;
+        }
+
+        // Find the booking by ID and delete it
+        const deletedBooking = await Booking.findByIdAndDelete(bookingId);
+
+        if (!deletedBooking) {
+            res.status(404).json({ message: "Booking not found" });
+            return;
+        }
+
+        res.status(200).json({
+            message: "Booking deleted successfully",
+            deletedBooking,
+        });
+    } catch (error) {
+        console.error("Error deleting booking:", error);
+        res.status(500).json({ message: "Error deleting booking" });
+    }
+};
+
+
