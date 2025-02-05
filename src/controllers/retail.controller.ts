@@ -5,6 +5,7 @@ import { bookingMail } from "../helper/bookingMail";
 import dotenv from "dotenv";
 import { sendEmailWithRetry } from "../helper/emailLogic";
 import RetailRequest from "../models/retailRequest.model";
+import { authenticateAdmin } from "../middlewares/auth.middleware";
 
 
 dotenv.config();
@@ -36,7 +37,9 @@ export const getRetailPlanById = async (req: Request, res: Response): Promise<vo
 };
 
 
-export const retailBooking = async (req: Request, res: Response): Promise<void> => {
+export const retailBooking = [
+    authenticateAdmin,
+    async (req: Request, res: Response): Promise<void> => {
     try {
         const {
             fullname,
@@ -128,4 +131,5 @@ export const retailBooking = async (req: Request, res: Response): Promise<void> 
             message: "Error creating booking or sending email",
         });
     }
-};
+}
+];

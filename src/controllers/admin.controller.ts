@@ -19,9 +19,11 @@ interface AdminSession {
 
 declare module "express-session" {
     interface SessionData {
-      admin?: AdminSession; 
+        admin?: AdminSession;
     }
 }
+
+export {};
 
 
 export const getAllAdmin = async (req: Request, res: Response): Promise<void> => {

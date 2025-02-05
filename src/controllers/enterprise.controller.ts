@@ -5,7 +5,7 @@ import { bookingMail } from "../helper/bookingMail";
 import dotenv from "dotenv";
 import { sendEmailWithRetry } from "../helper/emailLogic";
 import EnterpriseRequest from "../models/enterpriseRequest.model";
-
+import {authenticateAdmin} from "../middlewares/auth.middleware";
 
 dotenv.config();
 
@@ -36,7 +36,9 @@ export const getEnterprisePlanById = async (req: Request, res: Response): Promis
 };
 
 
-export const enterpriseBooking = async (req: Request, res: Response): Promise<void> => {
+export const enterpriseBooking = [
+    authenticateAdmin,
+    async (req: Request, res: Response): Promise<void> => {
     try {
         const {
             fullname,
@@ -142,4 +144,5 @@ export const enterpriseBooking = async (req: Request, res: Response): Promise<vo
             message: "Error creating enterprise booking or sending email",
         });
     }
-};
+}
+];
