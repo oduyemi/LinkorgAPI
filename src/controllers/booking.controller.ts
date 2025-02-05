@@ -4,6 +4,7 @@ import Inbox from "../models/inbox.model";
 import { bookingMail } from "../helper/bookingMail";
 import dotenv from "dotenv";
 import { sendEmailWithRetry } from "../helper/emailLogic";
+import BookingRequest from "../models/bookingRequest.model";
 
 
 dotenv.config();
@@ -32,6 +33,7 @@ export const getBookingById = async (req: Request, res: Response): Promise<void>
         res.status(500).json({ message: "Error retrieving booking data", error: error.message });
     }
 };
+
 
 
 export const newBooking = async (req: Request, res: Response): Promise<void> => {
@@ -71,6 +73,16 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
         });
 
         await addBooking.save();
+        const bookingRequest = new BookingRequest({
+            admin: null, // No admin assigned initially
+            customerName: addBooking._id, 
+            requestDate: new Date(),
+            time: "N/A",
+            guestCount: 1, 
+            status: "pending",
+        });
+
+        await bookingRequest.save();
 
         const newInboxEntry = new Inbox({
             formType: "Booking",
@@ -102,12 +114,10 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
                     <tr><td style="font-weight: bold;">Special Request:</td><td>${specialRequest}</td></tr>
                 </table>
                 <p style="margin-top: 20px;">Best regards,<br>LinkOrg Networks</p>
-                    <p style="margin-top: 20px;">You can send an email directly to the Customer via <b><span> <a href="mailto:${email}">${email}</a></span></b> where necessary.</p>
-           
+                <p style="margin-top: 20px;">You can send an email directly to the Customer via <b><span> <a href="mailto:${email}">${email}</a></span></b> where necessary.</p>
             </div>
         `;
 
-        // Send email to both addresses
         const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
         await Promise.all(
             recipients.map((recipient) =>
@@ -118,6 +128,7 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
         res.status(201).json({
             message: "New booking form added successfully, and emails sent.",
             newInboxEntry,
+            bookingRequest, 
         });
     } catch (error) {
         console.error("Error during booking creation or email sending:", error);
@@ -129,68 +140,68 @@ export const newBooking = async (req: Request, res: Response): Promise<void> => 
 
 
 
-export const updateBookingStatus = async (req: Request, res: Response): Promise<void> => {
-  try {
-    // Access the bookingId from req.params
-    const { id } = req.params;
-    const { status } = req.body; // Status should be in the request body
+// export const updateBookingStatus = async (req: Request, res: Response): Promise<void> => {
+//   try {
+//     // Access the bookingId from req.params
+//     const { id } = req.params;
+//     const { status } = req.body; // Status should be in the request body
 
-    // Ensure the status is provided
-    if (!status) {
-      res.status(400).json({ message: "Status is required" });
-      return;
-    }
+//     // Ensure the status is provided
+//     if (!status) {
+//       res.status(400).json({ message: "Status is required" });
+//       return;
+//     }
 
-    // Find and update the booking status by ID
-    const booking = await Booking.findById(id);
+//     // Find and update the booking status by ID
+//     const booking = await Booking.findById(id);
 
-    if (!booking) {
-      res.status(404).json({ message: "Booking not found" });
-      return;
-    }
+//     if (!booking) {
+//       res.status(404).json({ message: "Booking not found" });
+//       return;
+//     }
 
-    // Update the booking status
-    booking.status = status;
-    await booking.save();
+//     // Update the booking status
+//     booking.status = status;
+//     await booking.save();
 
-    res.status(200).json({
-      message: "Booking status updated successfully",
-      updatedBooking: booking,
-    });
-  } catch (error) {
-    console.error("Error updating booking status:", error);
-    res.status(500).json({ message: "Error updating booking status" });
-  }
-};
-
-
+//     res.status(200).json({
+//       message: "Booking status updated successfully",
+//       updatedBooking: booking,
+//     });
+//   } catch (error) {
+//     console.error("Error updating booking status:", error);
+//     res.status(500).json({ message: "Error updating booking status" });
+//   }
+// };
 
 
-export const deleteBooking = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const { bookingId } = req.params; // Booking ID from URL params
 
-        if (!bookingId) {
-            res.status(400).json({ message: "Booking ID is required" });
-            return;
-        }
 
-        // Find the booking by ID and delete it
-        const deletedBooking = await Booking.findByIdAndDelete(bookingId);
+// export const deleteBooking = async (req: Request, res: Response): Promise<void> => {
+//     try {
+//         const { bookingId } = req.params; // Booking ID from URL params
 
-        if (!deletedBooking) {
-            res.status(404).json({ message: "Booking not found" });
-            return;
-        }
+//         if (!bookingId) {
+//             res.status(400).json({ message: "Booking ID is required" });
+//             return;
+//         }
 
-        res.status(200).json({
-            message: "Booking deleted successfully",
-            deletedBooking,
-        });
-    } catch (error) {
-        console.error("Error deleting booking:", error);
-        res.status(500).json({ message: "Error deleting booking" });
-    }
-};
+//         // Find the booking by ID and delete it
+//         const deletedBooking = await Booking.findByIdAndDelete(bookingId);
+
+//         if (!deletedBooking) {
+//             res.status(404).json({ message: "Booking not found" });
+//             return;
+//         }
+
+//         res.status(200).json({
+//             message: "Booking deleted successfully",
+//             deletedBooking,
+//         });
+//     } catch (error) {
+//         console.error("Error deleting booking:", error);
+//         res.status(500).json({ message: "Error deleting booking" });
+//     }
+// };
 
 

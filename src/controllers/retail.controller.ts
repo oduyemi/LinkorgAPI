@@ -4,6 +4,7 @@ import Inbox from "../models/inbox.model";
 import { bookingMail } from "../helper/bookingMail";
 import dotenv from "dotenv";
 import { sendEmailWithRetry } from "../helper/emailLogic";
+import RetailRequest from "../models/retailRequest.model";
 
 
 dotenv.config();
@@ -71,6 +72,16 @@ export const retailBooking = async (req: Request, res: Response): Promise<void> 
         });
 
         await addRetailBooking.save();
+        const retailRequest = new RetailRequest({
+            admin: null, // No admin assigned initially
+            retail: addRetailBooking._id,  
+            requestDate: new Date(),
+            status: "pending",
+        });
+        
+
+        await retailRequest.save();
+
         const newInboxEntry = new Inbox({
             formType: "Booking",
             senderName: fullname,

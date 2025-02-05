@@ -6,6 +6,7 @@ import { sendEmailWithRetry } from "../helper/emailLogic";
 
 
 import dotenv from "dotenv";
+import EnquiryRequest from "../models/enquiryRequest.model";
 
 dotenv.config();
 
@@ -56,7 +57,14 @@ export const newEnquiry = async (req: Request, res: Response): Promise<void> => 
             message,
         });
         await newInboxEntry.save();
+        const enquiryRequest = new EnquiryRequest({
+            admin: null, // No admin assigned initially
+            enquiry: newEnquiryEntry._id, // The created enquiry
+            requestDate: new Date(),
+            status: "pending"
+        });
 
+        await enquiryRequest.save();
         await enquiryMail(email, name);
 
         const subject = `New Enquiry Received${topic ? `: ${topic}` : ""}`;

@@ -1,12 +1,11 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-
-
 export interface IEnterpriseRequest extends Document {
   _id: mongoose.Types.ObjectId;
-  admin: mongoose.Types.ObjectId;
+  admin?: mongoose.Types.ObjectId;
   enterprise: mongoose.Types.ObjectId; 
   requestDate: Date;
+  time: string; 
   status: string;  
   createdAt: Date;
   updatedAt: Date;
@@ -17,9 +16,7 @@ const enterpriseRequestSchema: Schema = new mongoose.Schema(
     admin: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Admin", 
-        required: true,
     },
-    
     enterprise: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Enterprise",  
@@ -29,12 +26,17 @@ const enterpriseRequestSchema: Schema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    time: {
+      type: String,
+      required: true,
+      default: "N/A",
+    },
     status: {
         type: String,
         enum: ["pending", "working", "resolved", "rejected"],
         required: true,
         default: "pending",
-      },
+    },
     createdAt: {
       type: Date,
       default: Date.now,

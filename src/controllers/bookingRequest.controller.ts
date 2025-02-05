@@ -2,7 +2,7 @@ import { Request, Response, RequestHandler } from "express";
 import BookingRequest from "../models/bookingRequest.model";
 import Booking, { IBooking } from "../models/booking.model"; 
 import { authenticateAdmin } from "../middlewares/auth.middleware";
-import Admin from "../models/admin.model";
+
 
 export const getBookingRequests = async (req: Request, res: Response) => {
   try {
@@ -35,7 +35,7 @@ export const updateBookingRequestStatus: RequestHandler[] = [
   async (req: Request, res: Response): Promise<void> => { 
     if (!req.session.admin) {
       res.status(401).json({ message: "Unauthorized. Admin session not found." });
-      return; // Explicit return
+      return; 
     }
 
     const { bookingRequestId } = req.params;

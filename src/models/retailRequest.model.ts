@@ -4,7 +4,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IRetailRequest extends Document {
   _id: mongoose.Types.ObjectId;
-  admin: mongoose.Types.ObjectId;
+  admin?: mongoose.Types.ObjectId;
   retail: mongoose.Types.ObjectId;  
   requestDate: Date;
   status: string; 
@@ -17,7 +17,6 @@ const retailRequestSchema: Schema = new mongoose.Schema(
     admin: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Admin", 
-        required: true,
     },
     retail: {
       type: mongoose.Schema.Types.ObjectId,
