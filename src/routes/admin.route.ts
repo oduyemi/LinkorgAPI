@@ -14,7 +14,7 @@ import { authenticateAdmin } from "../middlewares/auth.middleware";
 const router = express.Router();
 
 router.get("/", getAllAdmin);
-router.get("/:adminId", getAdminById);
+router.get("/:adminId", authenticateAdmin, getAdminById);
 router.post("/register", registerAdmin);
 router.post("/login", loginAdmin);
 router.put("/:adminId", updateAdmin);

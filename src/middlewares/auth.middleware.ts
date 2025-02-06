@@ -1,36 +1,27 @@
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Admin from "../models/admin.model";
+import Admin, { IAdmin } from "../models/admin.model";
 
 dotenv.config();
 
-interface AdminSession {
-    adminID: mongoose.Types.ObjectId;
-    fname: string;
-    lname: string;
-    email: string;
-    phone: string;
-    createdAt: Date;
-    updatedAt?: Date;
+interface AuthenticatedRequest extends Request {
+    admin?: IAdmin; 
 }
 
-declare module "express-session" {
-    interface SessionData {
-        admin?: AdminSession;
-    }
-}
-
-export const authenticateAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const authenticateAdmin = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
     try {
         if (!req.session.admin) {
             res.status(401).json({ message: "Unauthorized. No admin session found." });
             return;
         }
 
-        const { adminID } = req.session.admin;
-
-        if (!mongoose.Types.ObjectId.isValid(adminID)) {
+        const adminID = req.session.admin.adminID;
+        if (!adminID || !mongoose.Types.ObjectId.isValid(adminID.toString())) {
             res.status(400).json({ message: "Invalid admin ID format." });
             return;
         }
@@ -41,11 +32,10 @@ export const authenticateAdmin = async (req: Request, res: Response, next: NextF
             return;
         }
 
+        req.admin = admin;
         next();
     } catch (error) {
         console.error("Error during admin authentication:", error);
         res.status(500).json({ message: "Internal server error during authentication." });
     }
 };
-
-

@@ -5,6 +5,7 @@ import { contactMail } from "../helper/contactMail";
 import dotenv from "dotenv";
 import { sendEmailWithRetry } from "../helper/emailLogic";
 import ContactRequest from "../models/contactRequest.model";
+import { authenticateAdmin } from "../middlewares/auth.middleware";
 
 
 dotenv.config();
@@ -38,7 +39,9 @@ export const getContactById = async (req: Request, res: Response): Promise<void>
 
 
 
-export const newContact = async (req: Request, res: Response): Promise<void> => {
+export const newContact = [
+    authenticateAdmin,
+    async (req: Request, res: Response): Promise<void> => {
     try {
         const { name, email, phone, subject, message } = req.body;
 
@@ -102,4 +105,5 @@ export const newContact = async (req: Request, res: Response): Promise<void> => 
         console.error("Error during contact data creation or email sending:", error);
         res.status(500).json({ message: "Error creating contact data or sending email" });
     }
-};
+}
+];
