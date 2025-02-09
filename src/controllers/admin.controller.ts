@@ -38,8 +38,8 @@ export const getAllAdmin = async (req: Request, res: Response): Promise<void> =>
 
 export const getAdminById = async (req: Request, res: Response): Promise<void> => {
     try {
-        const adminId = req.params.adminId;
-        const admin: IAdmin | null = await Admin.findById(adminId).select("-password");
+        const adminID = req.params.adminID;
+        const admin: IAdmin | null = await Admin.findById(adminID).select("-password");
     
         if (!admin) {
         res.status(404).json({ Message: "Admin not found" });
@@ -135,7 +135,7 @@ export const loginAdmin = async (req: Request, res: Response, next: NextFunction
             return;
         }
   
-        const payload = { adminId: admin._id };
+        const payload = { adminID: admin._id };
         const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: "1h" });
 
         const adminSession = {
@@ -171,8 +171,8 @@ export const loginAdmin = async (req: Request, res: Response, next: NextFunction
 
 export const updateAdmin = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { adminId } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(adminId)) {
+        const { adminID } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(adminID)) {
             res.status(400).json({ message: "Invalid admin ID" });
             return;
         }
@@ -192,7 +192,7 @@ export const updateAdmin = async (req: Request, res: Response): Promise<void> =>
             updatedAdminData.password = await bcrypt.hash(updatedAdminData.password, 10);
         }
 
-        const updatedAdmin = await Admin.findByIdAndUpdate(adminId, updatedAdminData, { new: true });
+        const updatedAdmin = await Admin.findByIdAndUpdate(adminID, updatedAdminData, { new: true });
 
         if (!updatedAdmin) {
             res.status(404).json({ message: "Admin not found" });
@@ -211,18 +211,18 @@ export const updateAdmin = async (req: Request, res: Response): Promise<void> =>
 
 export const deleteAdmin = async (req: Request, res: Response): Promise<void> => {
     try {
-        const adminId = req.params.adminId;
-        if (!req.session.admin || req.session.admin.adminID.toString() !== adminId) {
+        const adminID = req.params.adminID;
+        if (!req.session.admin || req.session.admin.adminID.toString() !== adminID) {
             res.status(401).json({ message: "Unauthorized: Admin not logged in or unauthorized to perform this action" });
             return; 
         }
-        const admin = await Admin.findById(adminId);
+        const admin = await Admin.findById(adminID);
         if (!admin) {
             res.status(404).json({ message: "Admin not found" });
             return; 
         }
 
-        await Admin.findByIdAndDelete(adminId);
+        await Admin.findByIdAndDelete(adminID);
         req.session.destroy((err) => {
             if (err) {
                 console.error("Error destroying session:", err);
@@ -238,7 +238,7 @@ export const deleteAdmin = async (req: Request, res: Response): Promise<void> =>
 
 export const resetPassword = async (req: Request, res: Response): Promise<void> => {
     try {
-        const adminId = req.params.adminId;
+        const adminID = req.params.adminID;
         const { oldPassword, newPassword, confirmNewPassword } = req.body;
 
         if (!oldPassword || !newPassword || !confirmNewPassword) {
@@ -246,7 +246,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
-        const admin = await Admin.findById(adminId);
+        const admin = await Admin.findById(adminID);
         if (!admin) {
             res.status(404).json({ message: "Admin not found" });
             return;
@@ -280,9 +280,9 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 
 
 export const logoutAdmin = (req: Request, res: Response) => {
-    const adminId = req.params.adminId;
+    const adminID = req.params.adminID;
     try {
-        if (!req.session.admin || req.session.admin.adminID.toString() !== adminId) {
+        if (!req.session.admin || req.session.admin.adminID.toString() !== adminID) {
             res.status(401).json({ message: "Unauthorized: Admin not logged in or unauthorized to perform this action" });
             return; 
         }

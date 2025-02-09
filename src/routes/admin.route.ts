@@ -14,12 +14,12 @@ import { authenticateAdmin } from "../middlewares/auth.middleware";
 const router = express.Router();
 
 router.get("/", getAllAdmin);
-router.get("/:adminId", getAdminById);
+router.get("/:adminID", getAdminById);
 router.post("/register", registerAdmin);
 router.post("/login", loginAdmin);
-router.put("/:adminId", updateAdmin);
-router.delete("/:adminId", authenticateAdmin, deleteAdmin);
-router.put("/:adminId/reset-password", resetPassword);
+router.put("/:adminID", updateAdmin);
+router.delete("/:adminID", authenticateAdmin, deleteAdmin);
+router.put("/:adminID/reset-password", resetPassword);
 router.post("/logout", authenticateAdmin, logoutAdmin);
 
 export default router;
