@@ -37,7 +37,6 @@ export const getEnquiryById = async (req: Request, res: Response): Promise<void>
 
 
 export const newEnquiry = [
-    authenticateAdmin,
     async (req: Request, res: Response): Promise<void> => {
     try {
         const { fname, lname, email, company, address, phone, state, topic, message } = req.body;

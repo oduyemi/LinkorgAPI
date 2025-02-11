@@ -38,7 +38,6 @@ export const getBookingById = async (req: Request, res: Response): Promise<void>
 
 
 export const newBooking = [
-    authenticateAdmin,
     async (req: Request, res: Response): Promise<void> => {
         try {
             const {

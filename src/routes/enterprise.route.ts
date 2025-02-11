@@ -4,7 +4,7 @@ import { enterpriseBooking, getAllEnteprisePlans, getEnterprisePlanById,   } fro
 const router = express.Router();
 
 router.get("/", getAllEnteprisePlans);
-router.get("/booking/:id", getEnterprisePlanById);
-router.post("/booking", enterpriseBooking);
+router.get("/:id", getEnterprisePlanById);
+router.post("/", enterpriseBooking);
 
 export default router;

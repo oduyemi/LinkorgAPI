@@ -40,7 +40,6 @@ export const getContactById = async (req: Request, res: Response): Promise<void>
 
 
 export const newContact = [
-    authenticateAdmin,
     async (req: Request, res: Response): Promise<void> => {
     try {
         const { name, email, phone, subject, message } = req.body;

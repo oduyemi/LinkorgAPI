@@ -4,7 +4,7 @@ import { getAllRetailPlans, getRetailPlanById, retailBooking } from "../controll
 const router = express.Router();
 
 router.get("/", getAllRetailPlans);
-router.get("/booking/:id", getRetailPlanById);
-router.post("/booking", retailBooking);
+router.get("/:id", getRetailPlanById);
+router.post("/", retailBooking);
 
 export default router;
