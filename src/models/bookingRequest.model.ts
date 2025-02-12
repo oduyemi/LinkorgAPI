@@ -5,7 +5,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IBookingRequest extends Document {
   _id: mongoose.Types.ObjectId;
   admin?: mongoose.Types.ObjectId; 
-  customerName: mongoose.Types.ObjectId;  
+  formID: mongoose.Types.ObjectId;  
   requestDate: Date;
   time: string;
   guestCount: number;
@@ -21,7 +21,7 @@ const bookingRequestSchema: Schema = new mongoose.Schema(
       ref: "Admin", 
     },
     
-    customerName: {
+    formID: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Booking",  
       required: true,

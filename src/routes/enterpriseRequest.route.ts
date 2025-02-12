@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.get("/", authenticateAdmin, getEnterpriseRequests);
 router.get("/:enterpriseRequestId", authenticateAdmin, getEnterpriseRequestById);
-router.put("/:enterpriseRequestId/status", authenticateAdmin, updateEnterpriseRequestStatus);
-router.delete("/:enterpriseRequestId", authenticateAdmin, deleteEnterpriseRequest);
+router.put("/:formID/status", authenticateAdmin, updateEnterpriseRequestStatus);
+router.delete("/:formID", authenticateAdmin, deleteEnterpriseRequest);
 
 export default router;

@@ -1,7 +1,7 @@
 import { Request, RequestHandler, Response } from "express";
 import Enterprise, { IEnterprise } from "../models/enterprise.model";
 import EnterpriseRequest from "../models/enterpriseRequest.model"; 
-// import { authenticateAdmin } from "../middlewares/auth.middleware";
+import mongoose from "mongoose";
 
 interface AuthenticatedRequest extends Request {
   admin?: {
@@ -19,22 +19,6 @@ export const getEnterpriseRequests = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error fetching enterprise requests", error: error.message });
   }
 };
-
-
-// export const getEnterpriseRequestById = async (req: Request, res: Response): Promise<void> => {
-//   const { enterpriseRequestId } = req.params;
-
-//   try {
-//       const enterprise: IEnterprise | null = await Enterprise.findById(enterpriseRequestId);
-//       if (!enterprise) {
-//           res.status(404).json({ message: "Enterprise request not found" });
-//           return;
-//       }
-//       res.status(200).json(enterprise);
-//   } catch (error: any) {
-//       res.status(500).json({ message: "Error retrieving enterprise request", error: error.message });
-//   }
-// };
 
 export const getEnterpriseRequestById = async (req: Request, res: Response): Promise<void> => {
   const { enterpriseRequestId } = req.params;
@@ -56,36 +40,48 @@ export const updateEnterpriseRequestStatus: RequestHandler = async (
   res: Response
 ): Promise<void> => {
 
+  try{
    if (!req.admin) {
     res.status(401).json({ message: "Unauthorized. Admin not found." });
     return;
   }
 
-    const { enterpriseRequestId } = req.params;
+    const { formID } = req.params;
     const { status } = req.body; 
 
-    try {
+        if (!formID) {
+          res.status(400).json({ message: "Missing formID in request parameters." });
+          return;
+        }
+    
+         if (!mongoose.isValidObjectId(formID)) {
+              console.error("Invalid ObjectId format:", formID);
+              res.status(400).json({ message: "Invalid formID ObjectId format." });
+              return;
+            }
+    
+                const customerObjectId = new mongoose.Types.ObjectId(formID);
+                const enterpriseRequest = await EnterpriseRequest.findOne({ formID: customerObjectId });
+
+                if (!enterpriseRequest) {
+                  res.status(404).json({ message: "Enterprise request not found." });
+                  return;
+                }
+
       const validStatuses = ["pending", "resolved", "working", "rejected"];
       if (!validStatuses.includes(status)) {
         res.status(400).json({ message: "Invalid status value provided." });
         return;
       }
 
-      const enterpriseRequest = await EnterpriseRequest.findById(enterpriseRequestId);
-      if (!enterpriseRequest) {
-        res.status(404).json({ message: "Enterprise request not found." });
-        return;
-      }
-
       enterpriseRequest.status = status;
       await enterpriseRequest.save();
 
-      const enterprise = await Enterprise.findOne(enterpriseRequest.enterprise);
+      const enterprise = await Enterprise.findById( customerObjectId);
       if (enterprise) {
         enterprise.status = status;
         await enterprise.save();
       }
-
   
       res.status(200).json({ 
         message: `Enterprise request marked as ${status}`, 
@@ -96,41 +92,26 @@ export const updateEnterpriseRequestStatus: RequestHandler = async (
         }
       });
     } catch (error: any) {
+      
+      console.error("Error updating Contact request status:", error);
       res.status(500).json({ message: "Error updating enterprise request status", error: error.message });
-      return;
     }
   }
 
 
 
-// export const deleteEnterpriseRequest = async (req: Request, res: Response): Promise<void> => {
-
-//   const { enterpriseRequestId } = req.params;
-
-//   try {
-//       const deletedEnterprise = await Enterprise.findByIdAndDelete(enterpriseRequestId);
-//       if (!deletedEnterprise) {
-//           res.status(404).json({ message: "Enterprise request not found" });
-//           return;
-//       }
-//       res.status(200).json({ message: "Enterprise request deleted successfully" });
-//   } catch (error: any) {
-//       res.status(500).json({ message: "Error deleting enterprise request", error: error.message });
-//   }
-// };
-
 export const deleteEnterpriseRequest = async (req: Request, res: Response): Promise<void> => {
-  const { enterpriseRequestId } = req.params;
+  const { formID } = req.params;
 
   try {
-      const deletedEnterprise = await EnterpriseRequest.findByIdAndDelete(enterpriseRequestId);
+      const deletedEnterprise = await EnterpriseRequest.findOne({formID});
       if (!deletedEnterprise) {
           res.status(404).json({ message: "Enterprise request not found" });
           return;
       }
-      const deleteEnterprise = Enterprise.findByIdAndDelete(deletedEnterprise.enterprise)
+      const deleteEnterprise = Enterprise.findByIdAndDelete(formID)
 
-      await EnterpriseRequest.findByIdAndDelete(enterpriseRequestId)
+      await EnterpriseRequest.findOneAndDelete({formID})
       res.status(200).json({ message: "Enterprise request and associated Enterprise deleted successfully", deleteEnterprise });
   } catch (error: any) {
       res.status(500).json({ message: "Error deleting enterprise request", error: error.message });
