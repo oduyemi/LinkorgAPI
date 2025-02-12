@@ -15,3 +15,5 @@ router.put("/:contactRequestId/status", authenticateAdmin, updateContactRequestS
 router.delete("/:contactRequestId", authenticateAdmin, deleteContactRequest);
 
 export default router;
+
+

@@ -5,7 +5,6 @@ import { contactMail } from "../helper/contactMail";
 import dotenv from "dotenv";
 import { sendEmailWithRetry } from "../helper/emailLogic";
 import ContactRequest from "../models/contactRequest.model";
-import { authenticateAdmin } from "../middlewares/auth.middleware";
 
 
 dotenv.config();

@@ -1,8 +1,15 @@
 import { Request, Response, RequestHandler } from "express";
 import Contact, { IContact } from "../models/contact.model";
 import ContactRequest from "../models/contactRequest.model"; 
-import { authenticateAdmin } from "../middlewares/auth.middleware";
+// import { authenticateAdmin } from "../middlewares/auth.middleware";
 
+interface AuthenticatedRequest extends Request {
+  admin?: {
+    _id: string;
+    fname: string;
+    lname: string;
+  };
+}
 
 export const getContactRequests = async (req: Request, res: Response) => {
   try {
@@ -14,29 +21,45 @@ export const getContactRequests = async (req: Request, res: Response) => {
 };
 
 
+// export const getContactRequestById = async (req: Request, res: Response): Promise<void> => {
+//   const { contactRequestId } = req.params;
+
+//   try {
+//       const contact: IContact| null = await Contact.findById(contactRequestId);
+//       if (!contact) {
+//           res.status(404).json({ message: "Contact request not found" });
+//           return;
+//       }
+//       res.status(200).json(contact);
+//   } catch (error: any) {
+//       res.status(500).json({ message: "Error retrieving contact request", error: error.message });
+//   }
+// };
+
 export const getContactRequestById = async (req: Request, res: Response): Promise<void> => {
   const { contactRequestId } = req.params;
 
   try {
-      const contact: IContact| null = await Contact.findById(contactRequestId);
-      if (!contact) {
+      const contactRequest: IContact| null = await ContactRequest.findById(contactRequestId);
+      if (!contactRequest) {
           res.status(404).json({ message: "Contact request not found" });
           return;
       }
-      res.status(200).json(contact);
+      res.status(200).json(contactRequest);
   } catch (error: any) {
       res.status(500).json({ message: "Error retrieving contact request", error: error.message });
   }
 };
 
+export const updateContactRequestStatus: RequestHandler = async (
+  req: AuthenticatedRequest, 
+  res: Response
+): Promise<void> => {
 
-export const updateContactRequestStatus: RequestHandler[] = [
-  authenticateAdmin, 
-  async (req: Request, res: Response): Promise<void> => { 
-    if (!req.session.admin) {
-      res.status(401).json({ message: "Unauthorized. Admin session not found." });
-      return; // Explicit return
-    }
+  if (!req.admin) {
+    res.status(401).json({ message: "Unauthorized. Admin not found." });
+    return;
+  }
 
     const { contactRequestId } = req.params;
     const { status } = req.body; 
@@ -57,41 +80,58 @@ export const updateContactRequestStatus: RequestHandler[] = [
       contactRequest.status = status;
       await contactRequest.save();
 
-      const contact = await Contact.findOne({ bookingRequestId: contactRequest._id });
-      if (contact) {
-        contact.status = status;
-        await contact.save();
+      const contactList = await Contact.findOne( contactRequest.contact);
+      if (contactList) {
+        contactList.status = status;
+        await contactList.save();
       }
-
-      const adminID = req.session.admin.adminID;
-      const adminName = `${req.session.admin.fname} ${req.session.admin.lname}`;
 
       res.status(200).json({ 
         message: `Contact request marked as ${status}`, 
         data: { 
           contactRequest, 
-          adminID, 
-          adminName 
+          adminID: req.admin._id,
+          adminName: `${req.admin.fname} ${req.admin.lname}`,
         }
       });
-      return; 
+
     } catch (error: any) {
       res.status(500).json({ message: "Error updating contact request status", error: error.message });
       return;
     }
-  },
-];
+  }
+
+
+// export const deleteContactRequest = async (req: Request, res: Response): Promise<void> => {
+//   const { contactRequestId } = req.params;
+
+//   try {
+//       const deletedContact = await Contact.findByIdAndDelete(contactRequestId);
+//       if (!deletedContact) {
+//           res.status(404).json({ message: "Contact request not found" });
+//           return;
+//       }
+//       res.status(200).json({ message: "Contact request deleted successfully" });
+//   } catch (error: any) {
+//       res.status(500).json({ message: "Error deleting contact request", error: error.message });
+//   }
+// };
+
 
 export const deleteContactRequest = async (req: Request, res: Response): Promise<void> => {
   const { contactRequestId } = req.params;
 
   try {
-      const deletedContact = await Contact.findByIdAndDelete(contactRequestId);
-      if (!deletedContact) {
+      const contactRequest = await ContactRequest.findById(contactRequestId);
+      if (!contactRequest) {
           res.status(404).json({ message: "Contact request not found" });
           return;
       }
-      res.status(200).json({ message: "Contact request deleted successfully" });
+
+      const deleteContact = Contact.findByIdAndDelete(contactRequest.contact)
+
+      await ContactRequest.findByIdAndDelete(contactRequestId)
+      res.status(200).json({ message: "Contact request and associated contact deleted successfully", deleteContact });
   } catch (error: any) {
       res.status(500).json({ message: "Error deleting contact request", error: error.message });
   }
