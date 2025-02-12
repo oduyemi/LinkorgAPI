@@ -69,7 +69,7 @@ export const getInboxEntryById = async (req: Request, res: Response): Promise<vo
       const accessToken = await getAccessToken();
 
       const response = await axios.get(
-          `https://graph.microsoft.com/v1.0/users/${process.env.EMAIL_USERNAME}/messages/${id}`, // Endpoint for specific email
+          `https://graph.microsoft.com/v1.0/users/${process.env.EMAIL_USERNAME}/messages/${id}`, 
           {
               headers: {
                   Authorization: `Bearer ${accessToken}`,

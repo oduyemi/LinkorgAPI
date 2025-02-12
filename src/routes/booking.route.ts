@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.get("/", getAllBookings);
 router.get("/booking/:id", getBookingById);
+// router.put("/update-booking/:id", updateBookingStatus);
 router.post("/booking", validateRequestBody(["name", "company", "email", "address", "service", "how", "phone", "state", "lga", "specialRequest"]), newBooking);
 
 export default router;

@@ -5,7 +5,6 @@ import { bookingMail } from "../helper/bookingMail";
 import dotenv from "dotenv";
 import { sendEmailWithRetry } from "../helper/emailLogic";
 import RetailRequest from "../models/retailRequest.model";
-import { authenticateAdmin } from "../middlewares/auth.middleware";
 
 
 dotenv.config();
