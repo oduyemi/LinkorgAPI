@@ -3,7 +3,7 @@ import Enquiry, { IEnquiry } from "../models/enquiry.model";
 import Inbox from "../models/inbox.model"; 
 import { enquiryMail } from "../helper/enquiryMail";
 import { sendEmailWithRetry } from "../helper/emailLogic";
-import {authenticateAdmin} from "../middlewares/auth.middleware"
+// import {authenticateAdmin} from "../middlewares/auth.middleware"
 
 import dotenv from "dotenv";
 import EnquiryRequest from "../models/enquiryRequest.model";
@@ -37,7 +37,7 @@ export const getEnquiryById = async (req: Request, res: Response): Promise<void>
 
 
 export const newEnquiry = [
-    authenticateAdmin,
+    // authenticateAdmin,
     async (req: Request, res: Response): Promise<void> => {
     try {
         const { fname, lname, email, company, address, phone, state, topic, message } = req.body;
