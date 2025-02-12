@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IEnterpriseRequest extends Document {
   _id: mongoose.Types.ObjectId;
   admin?: mongoose.Types.ObjectId;
-  enterprise: mongoose.Types.ObjectId; 
+  formID: mongoose.Types.ObjectId; 
   requestDate: Date;
   time: string; 
   status: string;  
@@ -17,7 +17,7 @@ const enterpriseRequestSchema: Schema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: "Admin", 
     },
-    enterprise: {
+    formID: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Enterprise",  
       required: true,

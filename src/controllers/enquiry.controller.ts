@@ -58,8 +58,8 @@ export const newEnquiry = [
         });
         await newInboxEntry.save();
         const enquiryRequest = new EnquiryRequest({
-            admin: null, // No admin assigned initially
-            enquiry: newEnquiryEntry._id, // The created enquiry
+            admin: null,
+            formID: newEnquiryEntry._id, 
             requestDate: new Date(),
             status: "pending"
         });
@@ -88,7 +88,7 @@ export const newEnquiry = [
            
             </div>`;
 
-           // Send email to both addresses
+
            const recipients = ["hello@linkorgnet.com", "noc@linkorgnet.com"];
            await Promise.all(
                recipients.map((recipient) =>

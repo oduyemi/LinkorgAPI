@@ -11,7 +11,8 @@ const router = express.Router();
 
 router.get("/", authenticateAdmin, getBookingRequests);
 router.get("/:bookingRequestId", authenticateAdmin, getBookingRequestById);
-router.put("/:bookingRequestId/status", authenticateAdmin, updateBookingRequestStatus);
-router.delete("/:bookingRequestId", authenticateAdmin, deleteBookingRequest);
+router.put('/:formID/status', authenticateAdmin, updateBookingRequestStatus);
+router.delete("/:formID", authenticateAdmin, deleteBookingRequest);
+
 
 export default router;

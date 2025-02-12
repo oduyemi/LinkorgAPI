@@ -5,7 +5,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IEnquiryRequest extends Document {
   _id: mongoose.Types.ObjectId;
   admin?: mongoose.Types.ObjectId;
-  enquiry: mongoose.Types.ObjectId;  
+  formID: mongoose.Types.ObjectId;  
   requestDate: Date;
   status: string;  
   createdAt: Date;
@@ -19,7 +19,7 @@ const enquiryRequestSchema: Schema = new mongoose.Schema(
       ref: "Admin", 
     },
     
-    enquiry: {
+    formID: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Enquiry", 
       required: true,

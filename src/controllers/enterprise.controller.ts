@@ -82,7 +82,6 @@ export const enterpriseBooking = [
 
         await addEnterpriseBooking.save();
 
-        // Add new entry to Inbox
         const newInboxEntry = new Inbox({
             formType: "Booking",
             senderName: fullname,
@@ -93,7 +92,7 @@ export const enterpriseBooking = [
         await newInboxEntry.save();
         const enterpriseRequest = new EnterpriseRequest({
             admin: null,
-            enterprise: addEnterpriseBooking._id,
+            formID: addEnterpriseBooking._id,
             requestDate: new Date(),
             time: "N/A",
             status: "pending",
@@ -102,7 +101,6 @@ export const enterpriseBooking = [
         await enterpriseRequest.save();
         await bookingMail(email, fullname);
 
-        // Email content
         const subject = "New Booking For Enterprise Internet Plan Booking";
         const htmlContent = `
             <div style="font-family: Arial, sans-serif; line-height: 1.6;">

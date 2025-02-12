@@ -75,8 +75,8 @@ export const newBooking = [
 
         await addBooking.save();
         const bookingRequest = new BookingRequest({
-            admin: null, // No admin assigned initially
-            customerName: addBooking._id, 
+            admin: null,
+            formID: addBooking._id, 
             requestDate: new Date(),
             time: "N/A",
             guestCount: 1, 
@@ -96,7 +96,7 @@ export const newBooking = [
 
         await bookingMail(email, name);
 
-        // Email content
+       
         const subject = "New Booking Form Submission";
         const htmlContent = `
             <div style="font-family: Arial, sans-serif; line-height: 1.6;">

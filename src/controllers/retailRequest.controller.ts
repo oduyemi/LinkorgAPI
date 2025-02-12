@@ -1,7 +1,7 @@
 import { Request, RequestHandler, Response } from "express";
 import Retail, { IRetail } from "../models/retail.model";
 import RetailRequest from "../models/retailRequest.model"; 
-// import { authenticateAdmin } from "../middlewares/auth.middleware";
+import mongoose from "mongoose";
 
 interface AuthenticatedRequest extends Request {
   admin?: {
@@ -20,21 +20,6 @@ export const getRetailRequests = async (req: Request, res: Response) => {
     }
   };
 
-
-  // export const getRetailRequestById = async (req: Request, res: Response): Promise<void> => {
-  //   const { retailRequestId } = req.params;
-  
-  //   try {
-  //       const retail: IRetail | null = await Retail.findById(retailRequestId);
-  //       if (!retail) {
-  //           res.status(404).json({ message: "Retail request not found" });
-  //           return;
-  //       }
-  //       res.status(200).json(retail);
-  //   } catch (error: any) {
-  //       res.status(500).json({ message: "Error retrieving retail request", error: error.message });
-  //   }
-  // };
 
   export const getRetailRequestById = async (req: Request, res: Response): Promise<void> => {
     const { retailRequestId } = req.params;
@@ -107,6 +92,8 @@ export const getRetailRequests = async (req: Request, res: Response) => {
     req: AuthenticatedRequest, 
     res: Response
   ): Promise<void> => {
+
+    try{
   
      if (!req.admin) {
       res.status(401).json({ message: "Unauthorized. Admin not found." });
@@ -114,26 +101,39 @@ export const getRetailRequests = async (req: Request, res: Response) => {
     }
   
   
-      const { retailRequestId } = req.params;
+      const { formID } = req.params;
       const { status } = req.body; 
-  
-      try {
+
+          if (!formID) {
+            res.status(400).json({ message: "Missing formID in request parameters." });
+            return;
+          }
+      
+           if (!mongoose.isValidObjectId(formID)) {
+                console.error("Invalid ObjectId format:", formID);
+                res.status(400).json({ message: "Invalid formID ObjectId format." });
+                return;
+              }
+      
+                  const customerObjectId = new mongoose.Types.ObjectId(formID);
+                  const retailRequest = await RetailRequest.findOne({ formID: customerObjectId });
+
+                          
+        if (!retailRequest) {
+          res.status(404).json({ message: "Retail request not found." });
+          return;
+        }
+
         const validStatuses = ["pending", "resolved", "working", "rejected"];
         if (!validStatuses.includes(status)) {
           res.status(400).json({ message: "Invalid status value provided." });
           return;
         }
   
-        const retailRequest = await RetailRequest.findById(retailRequestId);
-        if (!retailRequest) {
-          res.status(404).json({ message: "Retail request not found." });
-          return;
-        }
-  
         retailRequest.status = status;
         await retailRequest.save();
   
-        const retail = await Retail.findOne(retailRequest.retail);
+        const retail = await Retail.findById( customerObjectId);
         if (retail) {
           retail.status = status;
           await retail.save();
@@ -148,42 +148,26 @@ export const getRetailRequests = async (req: Request, res: Response) => {
             adminName: `${req.admin.fname} ${req.admin.lname}`, 
           }
         });
-        return; 
       } catch (error: any) {
+        console.error("Error updating retail request status:", error);
         res.status(500).json({ message: "Error updating retail request status", error: error.message });
         return;
       }
     }
 
-  // export const deleteRetailRequest = async (req: Request, res: Response): Promise<void> => {
-  //   const { retailRequestId } = req.params;
-  
-  //   try {
-  //       const deletedRetail = await Retail.findByIdAndDelete(retailRequestId);
-  //       if (!deletedRetail) {
-  //           res.status(404).json({ message: "Retail request not found" });
-  //           return;
-  //       }
-  //       res.status(200).json({ message: "Retail request deleted successfully" });
-  //   } catch (error: any) {
-  //       res.status(500).json({ message: "Error deleting retail request", error: error.message });
-  //   }
-  // };
-
   export const deleteRetailRequest = async (req: Request, res: Response): Promise<void> => {
-    const { retailRequestId } = req.params;
+    const { formID } = req.params;
   
     try {
-        const deletedRetail = await RetailRequest.findByIdAndDelete(retailRequestId);
+        const deletedRetail = await RetailRequest.findOne({formID});
         if (!deletedRetail) {
             res.status(404).json({ message: "Retail request not found" });
             return;
         }
 
-        const deleteRetail = Retail.findByIdAndDelete(deletedRetail.retail)
+        const deleteRetail = Retail.findByIdAndDelete(formID)
 
-        await RetailRequest.findByIdAndDelete(retailRequestId)
-        res.status(200).json({ message: "Enterprise request and associated Enterprise deleted successfully", deleteRetail });
+        await RetailRequest.findOneAndDelete({formID})
 
         res.status(200).json({ message: "Retail request deleted successfully" });
     } catch (error: any) {

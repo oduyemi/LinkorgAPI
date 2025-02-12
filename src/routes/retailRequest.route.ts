@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.get("/", authenticateAdmin, getRetailRequests);
 router.get("/:retailRequestId", authenticateAdmin, getRetailRequestById);
-router.put("/:retailRequestId/status", authenticateAdmin, updateRetailRequestStatus);
-router.delete("/:retailRequestId", authenticateAdmin, deleteRetailRequest);
+router.put("/:formID/status", authenticateAdmin, updateRetailRequestStatus);
+router.delete("/:formID", authenticateAdmin, deleteRetailRequest);
 
 export default router;

@@ -74,8 +74,8 @@ export const retailBooking = [
 
         await addRetailBooking.save();
         const retailRequest = new RetailRequest({
-            admin: null, // No admin assigned initially
-            retail: addRetailBooking._id,  
+            admin: null, 
+            formID: addRetailBooking._id,  
             requestDate: new Date(),
             status: "pending",
         });

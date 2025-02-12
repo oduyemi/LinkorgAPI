@@ -60,8 +60,8 @@ export const newContact = [
         });
         await newInboxEntry.save();
         const contactRequest = new ContactRequest({
-            admin: null, // No admin assigned initially
-            contact: newContactEntry._id, // The created contact
+            admin: null, 
+            formID: newContactEntry._id, 
             requestDate: new Date(),
             status: "pending",
         });

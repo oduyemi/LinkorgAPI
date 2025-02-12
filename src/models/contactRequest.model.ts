@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IContactRequest extends Document {
   _id: mongoose.Types.ObjectId;
   admin?: mongoose.Types.ObjectId; 
-  contact: mongoose.Types.ObjectId; 
+  formID: mongoose.Types.ObjectId; 
   requestDate: Date;
   status: string;  
   createdAt: Date;
@@ -17,7 +17,7 @@ const contactRequestSchema: Schema = new mongoose.Schema(
         ref: "Admin", 
     },
     
-    contact: {
+    formID: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Contact",
       required: true,
