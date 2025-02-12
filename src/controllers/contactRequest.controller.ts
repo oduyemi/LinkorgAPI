@@ -35,61 +35,6 @@ export const getContactRequestById = async (req: Request, res: Response): Promis
   }
 };
 
-
-// export const updateContactRequestStatus: RequestHandler[] = [
-//   authenticateAdmin, 
-//   async (req: Request, res: Response): Promise<void> => { 
-//     if (!req.session.admin) {
-//       res.status(401).json({ message: "Unauthorized. Admin session not found." });
-//       return; // Explicit return
-//     }
-
-//     const { contactRequestId } = req.params;
-//     const { status } = req.body; 
-
-//     try {
-//       const validStatuses = ["pending", "resolved", "working", "rejected"];
-//       if (!validStatuses.includes(status)) {
-//         res.status(400).json({ message: "Invalid status value provided." });
-//         return;
-//       }
-
-//       const contactRequest = await ContactRequest.findById(contactRequestId);
-//       if (!contactRequest) {
-//         res.status(404).json({ message: "Contact request not found." });
-//         return;
-//       }
-
-//       contactRequest.status = status;
-//       await contactRequest.save();
-
-//       const contact = await Contact.findOne({ bookingRequestId: contactRequest._id });
-//       if (contact) {
-//         contact.status = status;
-//         await contact.save();
-//       }
-
-//       const adminID = req.session.admin.adminID;
-//       const adminName = `${req.session.admin.fname} ${req.session.admin.lname}`;
-
-//       res.status(200).json({ 
-//         message: `Contact request marked as ${status}`, 
-//         data: { 
-//           contactRequest, 
-//           adminID, 
-//           adminName 
-//         }
-//       });
-//       return; 
-//     } catch (error: any) {
-//       res.status(500).json({ message: "Error updating contact request status", error: error.message });
-//       return;
-//     }
-//   },
-// ];
-
-
-
 export const updateContactRequestStatus: RequestHandler = async (
   req: AuthenticatedRequest, 
   res: Response
