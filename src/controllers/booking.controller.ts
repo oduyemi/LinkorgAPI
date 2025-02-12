@@ -5,7 +5,6 @@ import { bookingMail } from "../helper/bookingMail";
 import dotenv from "dotenv";
 import { sendEmailWithRetry } from "../helper/emailLogic";
 import BookingRequest from "../models/bookingRequest.model";
-// import { authenticateAdmin } from "../middlewares/auth.middleware";
 
 
 dotenv.config();
@@ -38,7 +37,6 @@ export const getBookingById = async (req: Request, res: Response): Promise<void>
 
 
 export const newBooking = [
-    // authenticateAdmin,
     async (req: Request, res: Response): Promise<void> => {
         try {
             const {
