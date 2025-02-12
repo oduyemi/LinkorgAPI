@@ -51,6 +51,60 @@ export const getEnterpriseRequestById = async (req: Request, res: Response): Pro
   }
 };
 
+
+// export const updateEnterpriseRequestStatus: RequestHandler[] = [
+//   authenticateAdmin, 
+//   async (req: Request, res: Response): Promise<void> => { 
+//     if (!req.session.admin) {
+//       res.status(401).json({ message: "Unauthorized. Admin session not found." });
+//       return; // Explicit return
+//     }
+
+//     const { enterpriseRequestId } = req.params;
+//     const { status } = req.body; 
+
+//     try {
+//       const validStatuses = ["pending", "resolved", "working", "rejected"];
+//       if (!validStatuses.includes(status)) {
+//         res.status(400).json({ message: "Invalid status value provided." });
+//         return;
+//       }
+
+//       const enterpriseRequest = await EnterpriseRequest.findById(enterpriseRequestId);
+//       if (!enterpriseRequest) {
+//         res.status(404).json({ message: "Enterprise request not found." });
+//         return;
+//       }
+
+//       enterpriseRequest.status = status;
+//       await enterpriseRequest.save();
+
+//       const enterprise = await Enterprise.findOne({ enterpriseRequestId: enterpriseRequest._id });
+//       if (enterprise) {
+//         enterprise.status = status;
+//         await enterprise.save();
+//       }
+
+//       const adminID = req.session.admin.adminID;
+//       const adminName = `${req.session.admin.fname} ${req.session.admin.lname}`;
+
+//       res.status(200).json({ 
+//         message: `Enterprise request marked as ${status}`, 
+//         data: { 
+//           enterpriseRequest, 
+//           adminID, 
+//           adminName 
+//         }
+//       });
+//       return; 
+//     } catch (error: any) {
+//       res.status(500).json({ message: "Error updating enterprise request status", error: error.message });
+//       return;
+//     }
+//   },
+// ];
+
+
 export const updateEnterpriseRequestStatus: RequestHandler = async (
   req: AuthenticatedRequest, 
   res: Response

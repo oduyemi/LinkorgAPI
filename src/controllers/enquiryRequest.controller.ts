@@ -103,6 +103,60 @@ export const getEnquiryRequestById = async (req: Request, res: Response): Promis
   }
 };
 
+
+// export const updateEnquiryRequestStatus: RequestHandler[] = [
+//   authenticateAdmin, 
+//   async (req: Request, res: Response): Promise<void> => { 
+//     if (!req.session.admin) {
+//       res.status(401).json({ message: "Unauthorized. Admin session not found." });
+//       return; 
+//     }
+
+//     const { enquiryRequestId } = req.params;
+//     const { status } = req.body; 
+
+//     try {
+//       const validStatuses = ["pending", "resolved", "working", "rejected"];
+//       if (!validStatuses.includes(status)) {
+//         res.status(400).json({ message: "Invalid status value provided." });
+//         return;
+//       }
+
+//       const enquiryRequest = await EnquiryRequest.findById(enquiryRequestId);
+//       if (!enquiryRequest) {
+//         res.status(404).json({ message: "Enquiry request not found." });
+//         return;
+//       }
+
+//       enquiryRequest.status = status;
+//       await enquiryRequest.save();
+
+//       const enquiry = await Enquiry.findOne({ enquiryRequestId: enquiryRequest._id });
+//       if (enquiry) {
+//         enquiry.status = status;
+//         await enquiry.save();
+//       }
+
+//       const adminID = req.session.admin.adminID;
+//       const adminName = `${req.session.admin.fname} ${req.session.admin.lname}`;
+
+//       res.status(200).json({ 
+//         message: `Enquiry request marked as ${status}`, 
+//         data: { 
+//           enquiryRequest, 
+//           adminID, 
+//           adminName 
+//         }
+//       });
+//       return; 
+//     } catch (error: any) {
+//       res.status(500).json({ message: "Error updating enquiry request status", error: error.message });
+//       return;
+//     }
+//   },
+// ];
+
+
 export const updateEnquiryRequestStatus:  RequestHandler = async (
   req: AuthenticatedRequest, 
   res: Response
