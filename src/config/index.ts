@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const mongoDBURI: string = process.env.MONGODB_URI !== undefined ? process.env.MONGODB_URI : "mongodb://127.0.0.1:27017/linkorgvoipdb";
+const mongoDBURI: string = process.env.MONGODB_URI !== undefined ? process.env.MONGODB_URI : "mongodb://127.0.0.1:27017/linkorgdb";
 const dbName = process.env.DB_NAME || "linkorgdb";
 const dbHost = "127.0.0.1";
 const dbPort = 27017;
